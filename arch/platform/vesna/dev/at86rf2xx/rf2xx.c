@@ -12,6 +12,7 @@
 
 #include "sys/critical.h"
 
+#include "rf2xx_stats.h"
 #include "rf2xx_registermap.h"
 #include "rf2xx_hal.h"
 #include "rf2xx.h"
@@ -26,7 +27,6 @@ PROCESS(rf2xx_process, "AT86RF2xx driver");
 #if RF2XX_STATS
 volatile uint32_t rf2xxStats[RF2XX_STATS_COUNT] = { 0 };
 #endif
-
 
 // SRC: https://barrgroup.com/Embedded-Systems/How-To/Define-Assert-Macro
 #define ASSERT(expr) ({ if (!(expr)) LOG_ERR("Err: " #expr "\n"); })
@@ -112,6 +112,14 @@ rf2xx_init(void)
     // Reset internal and hardware states
 	rf2xx_reset();
 
+#if RF2XX_STATS
+    // Reset driver statistic
+    RF2XX_STATS_RESET();
+
+    // Init buffers for packet statistics
+    STATS_initBuff();
+#endif
+
 	// Start Contiki process which will take care of received packets
 	process_start(&rf2xx_process, NULL);
 	// process_start(&rf2xx_calibration_process, NULL);
@@ -126,8 +134,11 @@ rf2xx_prepare(const void *payload, unsigned short payload_len)
 {
     LOG_DBG("%s\n", __func__);
 
+    RF2XX_STATS_ADD(txTry);
+
     if (payload_len > RF2XX_MAX_PAYLOAD_SIZE) {
         LOG_ERR("Payload larger than radio buffer: %u > %u\n", payload_len, RF2XX_MAX_PAYLOAD_SIZE);
+        RF2XX_STATS_ADD(txError);
         return RADIO_TX_ERR;
     }
 
@@ -183,6 +194,7 @@ again:
 
         default: // Unknown state
             LOG_ERR("Radio in state: 0x%02x\n", trxState);
+            RF2XX_STATS_ADD(txError);
             return RADIO_TX_ERR;
     }
 
@@ -191,10 +203,18 @@ again:
     clearSLPTR();
 
     status = frameWrite(&txFrame);
-    if (status != VSN_SPI_SUCCESS) return RADIO_TX_ERR;
+    if (status != VSN_SPI_SUCCESS){
+        RF2XX_STATS_ADD(txError);
+        return RADIO_TX_ERR;
+    }
 
     // Wait to complete BUSY STATE
     BUSYWAIT_UNTIL(flags.TRX_END);
+
+    #if RF2XX_STATS
+        // Update TX packet statistics
+        STATS_txPush(&txFrame);
+    #endif
 
     txFrame.trac = (RF2XX_ARET) ? bitRead(SR_TRAC_STATUS) : TRAC_SUCCESS;
     
@@ -222,6 +242,7 @@ again:
             return RADIO_TX_COLLISION;
 
         default:
+            RF2XX_STATS_ADD(txError);
             LOG_DBG("TRAC=invalid (%u)\n", txFrame.trac);
             return RADIO_TX_ERR;
 	}
@@ -427,6 +448,11 @@ rf2xx_isr(void)
 
         if (flags.RX_START) {
             frameRead(&rxFrame);
+
+            #if RF2XX_STATS
+                // Update RX packet statistics
+                STATS_rxPush(&rxFrame);
+            #endif
             process_poll(&rf2xx_process);
  
             RF2XX_STATS_ADD(rxSuccess);
@@ -538,12 +564,12 @@ get_value(radio_param_t param, radio_value_t *value)
 			return RSSI_BASE_VAL + 2 * (radio_value_t)bitRead(SR_CCA_ED_THRES);
 
 		case RADIO_PARAM_RSSI:
-            LOG_DBG("Request current RSSI\n");
+            //LOG_DBG("Request current RSSI\n");
 			*value = (3 * ((radio_value_t)bitRead(SR_RSSI) - 1) + RSSI_BASE_VAL);
 			return RADIO_RESULT_OK;
 
         case RADIO_PARAM_LAST_RSSI:
-            LOG_DBG("Request last RSSI\n");
+            //LOG_DBG("Request last RSSI\n");
             *value = (radio_value_t)rxFrame.rssi;
             return RADIO_RESULT_OK;
 

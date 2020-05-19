@@ -20,7 +20,7 @@
 
 
 #define RF2XX_UNDEFINED     ((uint8_t)0x00)
-//#define RF2XX_AT86RF212     ((uint8_t)0x07)
+#define RF2XX_AT86RF212     ((uint8_t)0x07)
 #define RF2XX_AT86RF231     ((uint8_t)0x03)
 #define RF2XX_AT86RF230     ((uint8_t)0x02)
 //#define RF2XX_AT86RF232     (0x0A) // was never tested
@@ -30,7 +30,7 @@
 // Maximum supported speed is 8MHz
 #define RF2XX_SPI_SPEED		((uint32_t)8000000)
 
-#define RSSI_BASE_VAL   	((int8_t)-91)
+#define RSSI_BASE_VAL		((int8_t)-91)
 
 
 // Board specific configurations
@@ -123,16 +123,15 @@
 	#define EXTI_IRQ_PIN		(GPIO_PinSource3)
 	#define EXTI_IRQ_CHANNEL	(EXTI3_IRQn)
 
+	// Chip select pins for CC101 radio
+	#define CC1101_CSN_PIN      (GPIO_Pin_9)
+	#define CC1101_CSN_PORT     (GPIOB)
+
+
 #else
 	#warning "No predefined board was selected!"
 	#error "No pins have been defined for AT86RF2xx radio!"
 #endif
-
-
-// TODO: Separate CC and Atmel radio configs
-// Chip select pins for CC101 radio
-#define CC1101_CSN_PIN      (GPIO_Pin_9)
-#define CC1101_CSN_PORT     (GPIOB)
 
 typedef union {
 	struct {

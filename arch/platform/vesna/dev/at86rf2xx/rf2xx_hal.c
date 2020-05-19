@@ -211,7 +211,7 @@ rf2xx_reset(void)
                 case RF2XX_AT86RF233:
                 case RF2XX_AT86RF231:
                 case RF2XX_AT86RF230:
-                //case RF2XX_AT86RF212:
+                case RF2XX_AT86RF212:
                     rf2xxChip = partNum;
                 default:
                     break;
@@ -572,7 +572,7 @@ enableEXTI(void)
     EXTI_Init(rf2xxEXTI);
 }
 
-
+#if AT86RF2XX_BOARD_ISMTV_V1_1
 // Set clock output on pin GDO0 of radio CC1101 to be 13.5 MHz
 // For other possible freq see radio datasheet
 void
@@ -723,3 +723,4 @@ CC1101_set_CS(void)
 {
     vsnSPI_chipSelect(CC1101_SPI, SPI_CS_LOW);
 }
+#endif
