@@ -613,6 +613,10 @@ get_value(radio_param_t param, radio_value_t *value)
 			*value = (radio_value_t)RF2XX_DELAY_BEFORE_DETECT;
 			return RADIO_RESULT_OK;
 
+        case RADIO_CONST_MAX_PAYLOAD_LEN:
+            *value = (radio_value_t)RF2XX_MAX_PAYLOAD_SIZE;
+            return RADIO_RESULT_OK;
+
 		default:
 			return RADIO_RESULT_NOT_SUPPORTED;
 	}
