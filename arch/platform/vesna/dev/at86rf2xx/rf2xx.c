@@ -276,25 +276,26 @@ int rf2xx_read(void *buf, unsigned short buf_len)
 int
 rf2xx_channel_clear(void)
 {
-    if (RF2XX_HW_CCA) {
+    #if RF2XX_HW_CCA
+        // The radio will take care of it.
         return 1;
-    }
+    #else
+        uint8_t cca;
 
-    uint8_t cca;
+        rf2xx_on();
 
-    rf2xx_on();
+        bitWrite(SR_RX_PDT_DIS, 1); // disable reception
 
-    bitWrite(SR_RX_PDT_DIS, 1); // disable reception
+        bitWrite(SR_CCA_REQUEST, 1); // trigger CCA sensing
+        BUSYWAIT_UNTIL(flags.CCA);
+        flags.CCA = 0;
 
-    bitWrite(SR_CCA_REQUEST, 1); // trigger CCA sensing
-    BUSYWAIT_UNTIL(flags.CCA);
-    flags.CCA = 0;
+        cca = bitRead(SR_CCA_STATUS); // 1 = IDLE, 0 = BUSY
 
-    cca = bitRead(SR_CCA_STATUS); // 1 = IDLE, 0 = BUSY
+        bitWrite(SR_RX_PDT_DIS, 0); // Enable reception
 
-    bitWrite(SR_RX_PDT_DIS, 0); // Enable reception
-
-    return cca;
+        return cca;
+    #endif
 }
 
 
@@ -553,7 +554,7 @@ get_value(radio_param_t param, radio_value_t *value)
 
 		case RADIO_PARAM_TX_MODE:
             *value = 0;
-			if (RF2XX_HW_CCA) *value |= RADIO_TX_MODE_SEND_ON_CCA;
+			if (!RF2XX_HW_CCA) *value |= RADIO_TX_MODE_SEND_ON_CCA;
 			return RADIO_RESULT_OK;
 
 		case RADIO_PARAM_TXPOWER:
@@ -694,16 +695,13 @@ set_value(radio_param_t param, radio_value_t value)
         case RADIO_PARAM_TX_MODE:
         {
             bool sendOnCCA = (value & RADIO_TX_MODE_SEND_ON_CCA) > 0;
-            if (sendOnCCA != RF2XX_HW_CCA) {
+            if (sendOnCCA == RF2XX_HW_CCA) { // They are mutually exclusive
                 LOG_ERR("Invalid RF2XX_HW_CCA settings\n");
+                return RADIO_RESULT_ERROR;
             }
-        }
-            //RF2XX_HW_CCA = (value & RADIO_TX_MODE_SEND_ON_CCA) > 0;
-            //bitWrite(SR_MAX_CSMA_RETRIES, RF2XX_HW_CCA ? RF2XX_CSMA_RETRIES : 7);
 
             return RADIO_RESULT_OK;
-            //return RADIO_RESULT_NOT_SUPPORTED;
-
+        }
         case RADIO_PARAM_TXPOWER:
             if (value < 0 || value > 0xF) {
                 return RADIO_RESULT_INVALID_VALUE;

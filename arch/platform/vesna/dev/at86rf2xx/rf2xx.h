@@ -11,9 +11,9 @@
 
 // If driver is built for Contiki's 6Tisch implementation
 #if MAC_CONF_WITH_TSCH
-#define RF2XX_CONF_AACK  (0)
-#define RF2XX_CONF_ARET  (0)
-#define RF2XX_CONF_CCA   (0)
+#define RF2XX_CONF_AACK         (0)
+#define RF2XX_CONF_ARET         (0)
+#define RF2XX_CONF_HW_CCA       (0)
 #define RF2XX_CONF_POLLING_MODE (1)
 #endif
 
@@ -53,11 +53,11 @@
 #define RF2XX_ARET  (RF2XX_CONF_ARET)
 #endif
 
-// Enable radio's automatic carrier sense
-#ifndef RF2XX_CONF_CCA
+// Enables radio's automatic CCA before sending
+#ifndef RF2XX_CONF_HW_CCA
 #define RF2XX_HW_CCA   (1)
 #else
-#define RF2XX_HW_CCA   (RF2XX_CONF_CCA)
+#define RF2XX_HW_CCA   (RF2XX_CONF_HW_CCA)
 #endif
 
 // Number of CSMA retries 0-5, 6 = reserved, 7 = immediately without CSMA/CA
@@ -77,7 +77,7 @@
 #define RF2XX_FRAME_RETRIES     (RF2XX_CONF_FRAME_RETRIES)
 #endif
 
-// Will CRC16-CITT be offloaded to the radio? 
+// Enable offloading checksum calculation to the radio chip
 #ifndef RF2XX_CONF_CHECKSUM
 #define RF2XX_CHECKSUM  (1)
 #else
