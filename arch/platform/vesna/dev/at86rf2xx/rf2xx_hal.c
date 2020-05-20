@@ -234,7 +234,7 @@ rf2xx_reset(void)
 
 	// Number of CSMA retries (part of IEEE 802.15.4)
 	// Possible values [0 - 5], 6 is reserved, 7 will send immediately (no CCA)
-	bitWrite(SR_MAX_CSMA_RETRIES, RF2XX_CCA ? RF2XX_CSMA_RETRIES : 7);
+	bitWrite(SR_MAX_CSMA_RETRIES, RF2XX_HW_CCA ? RF2XX_CSMA_RETRIES : 7);
 
 	// Number of maximum TX_ARET frame retries
 	// Possible values [0 - 15]

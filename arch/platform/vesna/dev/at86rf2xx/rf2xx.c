@@ -276,7 +276,7 @@ int rf2xx_read(void *buf, unsigned short buf_len)
 int
 rf2xx_channel_clear(void)
 {
-    if (RF2XX_CCA) {
+    if (RF2XX_HW_CCA) {
         return 1;
     }
 
@@ -553,7 +553,7 @@ get_value(radio_param_t param, radio_value_t *value)
 
 		case RADIO_PARAM_TX_MODE:
             *value = 0;
-			if (RF2XX_CCA) *value |= RADIO_TX_MODE_SEND_ON_CCA;
+			if (RF2XX_HW_CCA) *value |= RADIO_TX_MODE_SEND_ON_CCA;
 			return RADIO_RESULT_OK;
 
 		case RADIO_PARAM_TXPOWER:
@@ -694,12 +694,12 @@ set_value(radio_param_t param, radio_value_t value)
         case RADIO_PARAM_TX_MODE:
         {
             bool sendOnCCA = (value & RADIO_TX_MODE_SEND_ON_CCA) > 0;
-            if (sendOnCCA != RF2XX_CCA) {
-                LOG_ERR("Invalid RF2XX_CCA settings\n");
+            if (sendOnCCA != RF2XX_HW_CCA) {
+                LOG_ERR("Invalid RF2XX_HW_CCA settings\n");
             }
         }
-            //RF2XX_CCA = (value & RADIO_TX_MODE_SEND_ON_CCA) > 0;
-            //bitWrite(SR_MAX_CSMA_RETRIES, RF2XX_CCA ? RF2XX_CSMA_RETRIES : 7);
+            //RF2XX_HW_CCA = (value & RADIO_TX_MODE_SEND_ON_CCA) > 0;
+            //bitWrite(SR_MAX_CSMA_RETRIES, RF2XX_HW_CCA ? RF2XX_CSMA_RETRIES : 7);
 
             return RADIO_RESULT_OK;
             //return RADIO_RESULT_NOT_SUPPORTED;

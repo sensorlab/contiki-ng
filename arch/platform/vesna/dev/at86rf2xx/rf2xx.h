@@ -55,9 +55,9 @@
 
 // Enable radio's automatic carrier sense
 #ifndef RF2XX_CONF_CCA
-#define RF2XX_CCA   (1)
+#define RF2XX_HW_CCA   (1)
 #else
-#define RF2XX_CCA   (RF2XX_CONF_CCA)
+#define RF2XX_HW_CCA   (RF2XX_CONF_CCA)
 #endif
 
 // Number of CSMA retries 0-5, 6 = reserved, 7 = immediately without CSMA/CA
