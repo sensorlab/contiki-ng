@@ -9,15 +9,6 @@
 #endif
 
 
-// If driver is built for Contiki's 6Tisch implementation
-#if MAC_CONF_WITH_TSCH
-#define RF2XX_CONF_AACK         (0)
-#define RF2XX_CONF_ARET         (0)
-#define RF2XX_CONF_HW_CCA       (0)
-#define RF2XX_CONF_POLLING_MODE (1)
-#endif
-
-
 // Default log level
 #ifndef LOG_CONF_LEVEL_RF2XX
 #define LOG_LEVEL_RF2XX     (LOG_LEVEL_WARN)
@@ -37,64 +28,6 @@
 #define RF2XX_DRIVER_STATS      (0)
 #else
 #define RF2XX_DRIVER_STATS      (RF2XX_CONF_DRIVER_STATS)
-#endif
-
-// Enable radio's auto acknowledge capabilities (extended mode)
-#ifndef RF2XX_CONF_AACK
-#define RF2XX_AACK   (1)
-#else
-#define RF2XX_AACK   (RF2XX_CONF_AACK)
-#endif
-
-// Enable radio's auto retransmission capabilities (extended mode)
-#ifndef RF2XX_CONF_ARET
-#define RF2XX_ARET  (1)
-#else
-#define RF2XX_ARET  (RF2XX_CONF_ARET)
-#endif
-
-// Enables radio's automatic CCA before sending
-#ifndef RF2XX_CONF_HW_CCA
-#define RF2XX_HW_CCA   (1)
-#else
-#define RF2XX_HW_CCA   (RF2XX_CONF_HW_CCA)
-#endif
-
-// Number of CSMA retries 0-5, 6 = reserved, 7 = immediately without CSMA/CA
-#ifndef RF2XX_CONF_CSMA_RETRIES
-#define RF2XX_CSMA_RETRIES  (5)
-#else
-#if RF2XX_CONF_CSMA_RETRIES < 0 || RF2XX_CONF_CSMA_RETRIES > 5
-#error "Invalid RF2XX_CONF_CSMA_RETRIES"
-#endif
-#define RF2XX_CSMA_RETRIES  (RF2XX_CONF_CSMA_RETRIES)
-#endif
-
-// Number of frame retries, if no ACK, 0-15 (TX_ARET-only)
-#ifndef RF2XX_CONF_FRAME_RETRIES
-#define RF2XX_FRAME_RETRIES     (15)
-#else
-#define RF2XX_FRAME_RETRIES     (RF2XX_CONF_FRAME_RETRIES)
-#endif
-
-// Enable offloading checksum calculation to the radio chip
-#ifndef RF2XX_CONF_CHECKSUM
-#define RF2XX_CHECKSUM  (1)
-#else
-#define RF2XX_CHECKSUM  (RF2XX_CONF_CHECKSUM)
-#endif
-
-// Skip radio's address filter (AACK only)
-#ifndef RF2XX_CONF_PROMISCOUS_MODE
-#define RF2XX_PROMISCOUS_MODE   (0)
-#else
-#define RF2XX_PROMISCOUS_MODE   (RF2XX_CONF_PROMISCOUS_MODE)
-#endif
-
-#ifndef RF2XX_CONF_POLLING_MODE
-#define RF2XX_POLLING_MODE   (0)
-#else
-#define RF2XX_POLLING_MODE   (RF2XX_CONF_POLLING_MODE)
 #endif
 
 

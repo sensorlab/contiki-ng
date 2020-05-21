@@ -281,10 +281,9 @@ rf2xx_channel_clear(void)
         return 1;
     #else
         uint8_t cca;
-
         rf2xx_on();
 
-        bitWrite(SR_RX_PDT_DIS, 1); // disable reception
+        //bitWrite(SR_RX_PDT_DIS, 1); // disable reception
 
         bitWrite(SR_CCA_REQUEST, 1); // trigger CCA sensing
         BUSYWAIT_UNTIL(flags.CCA);
@@ -292,8 +291,7 @@ rf2xx_channel_clear(void)
 
         cca = bitRead(SR_CCA_STATUS); // 1 = IDLE, 0 = BUSY
 
-        bitWrite(SR_RX_PDT_DIS, 0); // Enable reception
-
+        //bitWrite(SR_RX_PDT_DIS, 0); // Enable reception
         return cca;
     #endif
 }
@@ -464,7 +462,7 @@ rf2xx_isr(void)
 
 	if (irq.IRQ4_AWAKE_END) { // CCA_***_IRQ
 		flags.SLEEP = 0;
-		flags.CCA = 0;
+		flags.CCA = 1;
 	}
 
 	if (irq.IRQ7_BAT_LOW) {}
@@ -488,9 +486,10 @@ PROCESS_THREAD(rf2xx_process, ev, data)
         packetbuf_set_attr(PACKETBUF_ATTR_TIMESTAMP, rxFrame.timestamp);
         len = rf2xx_read(packetbuf_dataptr(), PACKETBUF_SIZE);
 
-        packetbuf_set_datalen(len);
-
-        NETSTACK_MAC.input();
+        if(len){
+            packetbuf_set_datalen(len);
+            NETSTACK_MAC.input();
+        }
         
 	}
 	PROCESS_END();
