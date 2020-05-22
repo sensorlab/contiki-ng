@@ -95,6 +95,7 @@ ifdef AT86RF2XX_BOARD
 AT86RF2XX_BOARD_UPPER = $(shell echo "$(AT86RF2XX_BOARD)" | tr [a-z] [A-Z] | tr [.\ ] _)
 CONTIKI_TARGET_DIRS += dev/at86rf2xx 
 CONTIKI_TARGET_SOURCEFILES += rf2xx.c rf2xx_hal.c rf2xx_tsch.c rf2xx_stats.c
+
 CFLAGS += -DAT86RF2XX
 CFLAGS += -DAT86RF2XX_BOARD_$(AT86RF2XX_BOARD_UPPER)
 CFLAGS += -DAT86RF2XX_BOARD_STRING=\"$(AT86RF2XX_BOARD_UPPER)\"
@@ -175,6 +176,7 @@ OBJDUMP_FLAGS += --disassemble --source --disassembler-options=force-thumb
 		-c "poll" \
 		-c "flash write_image erase $*.$(TARGET) 0 elf" \
 		-c "verify_image $*.$(TARGET) 0 elf" \
+
 		-c "reset run" \
 		-c "shutdown"
 

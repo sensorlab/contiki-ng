@@ -72,4 +72,8 @@ cpu/x86/uefi/Makefile.uefi
 cpu/x86/uefi/edk2
 
 # editors
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json

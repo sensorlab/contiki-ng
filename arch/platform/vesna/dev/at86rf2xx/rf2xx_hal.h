@@ -32,7 +32,6 @@
 
 #define RSSI_BASE_VAL		((int8_t)-91)
 
-
 // Board specific configurations
 #if AT86RF2XX_BOARD_SNR
 	#define SPI_PORT 			(VSN_SPI2)
@@ -223,3 +222,4 @@ int frameRead(rxFrame_t *frame);
 int frameWrite(txFrame_t *frame);
 
 #endif
+

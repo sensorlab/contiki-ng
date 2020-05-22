@@ -54,8 +54,6 @@ extern const uint16_t tsch_timeslot_timing_rf2xx_10000us_250kbps[];
 #define RF2XX_CONF_DEFAULT_TIMESLOT_TIMING	(tsch_timeslot_timing_rf2xx_10000us_250kbps)
 
 
-
-
 // If driver is built for Contiki's 6Tisch implementation
 #if MAC_CONF_WITH_TSCH
 #define RF2XX_CONF_AACK         (0)

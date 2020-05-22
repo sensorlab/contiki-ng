@@ -12,17 +12,16 @@
 
 #include "sys/critical.h"
 
-#include "rf2xx_stats.h"
 #include "rf2xx_registermap.h"
 #include "rf2xx_hal.h"
 #include "rf2xx.h"
 #include "rf2xx_arch.h"
+#include "rf2xx_stats.h"
 
 #define LOG_MODULE  "rf2xx"
 #define LOG_LEVEL   LOG_LEVEL_RF2XX
 
 PROCESS(rf2xx_process, "AT86RF2xx driver");
-
 
 #if RF2XX_DRIVER_STATS
 volatile uint32_t rf2xxStats[RF2XX_STATS_COUNT] = { 0 };
@@ -119,7 +118,6 @@ rf2xx_init(void)
     // Init buffers for packet statistics
     STATS_initBuff();
 #endif
-
 	// Start Contiki process which will take care of received packets
 	process_start(&rf2xx_process, NULL);
 	// process_start(&rf2xx_calibration_process, NULL);
@@ -139,6 +137,7 @@ rf2xx_prepare(const void *payload, unsigned short payload_len)
     if (payload_len > RF2XX_MAX_PAYLOAD_SIZE) {
         LOG_ERR("Payload larger than radio buffer: %u > %u\n", payload_len, RF2XX_MAX_PAYLOAD_SIZE);
         RF2XX_STATS_ADD(txError);
+
         return RADIO_TX_ERR;
     }
 
@@ -207,6 +206,7 @@ again:
         RF2XX_STATS_ADD(txError);
         return RADIO_TX_ERR;
     }
+
 
     // Wait to complete BUSY STATE
     BUSYWAIT_UNTIL(flags.TRX_END);
@@ -452,6 +452,7 @@ rf2xx_isr(void)
                 // Update RX packet statistics
                 STATS_rxPush(&rxFrame);
             #endif
+
             process_poll(&rf2xx_process);
  
             RF2XX_STATS_ADD(rxSuccess);
@@ -463,6 +464,7 @@ rf2xx_isr(void)
 	if (irq.IRQ4_AWAKE_END) { // CCA_***_IRQ
 		flags.SLEEP = 0;
 		flags.CCA = 1;
+
 	}
 
 	if (irq.IRQ7_BAT_LOW) {}
@@ -486,11 +488,10 @@ PROCESS_THREAD(rf2xx_process, ev, data)
         packetbuf_set_attr(PACKETBUF_ATTR_TIMESTAMP, rxFrame.timestamp);
         len = rf2xx_read(packetbuf_dataptr(), PACKETBUF_SIZE);
 
-        if(len){
+        if(len) {
             packetbuf_set_datalen(len);
             NETSTACK_MAC.input();
         }
-        
 	}
 	PROCESS_END();
 }
@@ -554,6 +555,7 @@ get_value(radio_param_t param, radio_value_t *value)
 		case RADIO_PARAM_TX_MODE:
             *value = 0;
 			if (!RF2XX_HW_CCA) *value |= RADIO_TX_MODE_SEND_ON_CCA;
+
 			return RADIO_RESULT_OK;
 
 		case RADIO_PARAM_TXPOWER:
@@ -564,14 +566,12 @@ get_value(radio_param_t param, radio_value_t *value)
 			return RSSI_BASE_VAL + 2 * (radio_value_t)bitRead(SR_CCA_ED_THRES);
 
 		case RADIO_PARAM_RSSI:
-            //LOG_DBG("Request current RSSI\n");
 			*value = (3 * ((radio_value_t)bitRead(SR_RSSI) - 1) + RSSI_BASE_VAL);
 			return RADIO_RESULT_OK;
 
-        case RADIO_PARAM_LAST_RSSI:
-            //LOG_DBG("Request last RSSI\n");
-            *value = (radio_value_t)rxFrame.rssi;
-            return RADIO_RESULT_OK;
+    case RADIO_PARAM_LAST_RSSI:
+        *value = (radio_value_t)rxFrame.rssi;
+        return RADIO_RESULT_OK;
 
 		case RADIO_PARAM_LAST_LINK_QUALITY:
 			*value = (radio_value_t)rxFrame.lqi;
@@ -613,9 +613,10 @@ get_value(radio_param_t param, radio_value_t *value)
 			*value = (radio_value_t)RF2XX_DELAY_BEFORE_DETECT;
 			return RADIO_RESULT_OK;
 
-        case RADIO_CONST_MAX_PAYLOAD_LEN:
-            *value = (radio_value_t)RF2XX_MAX_PAYLOAD_SIZE;
-            return RADIO_RESULT_OK;
+
+    case RADIO_CONST_MAX_PAYLOAD_LEN:
+        *value = (radio_value_t)RF2XX_MAX_PAYLOAD_SIZE;
+        return RADIO_RESULT_OK;
 
 		default:
 			return RADIO_RESULT_NOT_SUPPORTED;
@@ -693,6 +694,7 @@ set_value(radio_param_t param, radio_value_t value)
     
         case RADIO_PARAM_TX_MODE:
         {
+            // TODO: Make it shorter
             bool sendOnCCA = (value & RADIO_TX_MODE_SEND_ON_CCA) > 0;
             if (sendOnCCA == RF2XX_HW_CCA) { // They are mutually exclusive
                 LOG_ERR("Invalid RF2XX_HW_CCA settings\n");

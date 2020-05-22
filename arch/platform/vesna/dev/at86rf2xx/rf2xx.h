@@ -16,20 +16,6 @@
 #define LOG_LEVEL_RF2XX     (LOG_CONF_LEVEL_RF2XX)
 #endif
 
-// Collect packet statistics
-#ifndef RF2XX_CONF_PACKET_STATS
-#define RF2XX_PACKET_STATS     (0)
-#else
-#define RF2XX_PACKET_STATS     (RF2XX_CONF_PACKET_STATS)
-#endif
-
-// Collect statistics on radio driver operations
-#ifndef  RF2XX_CONF_DRIVER_STATS
-#define RF2XX_DRIVER_STATS      (0)
-#else
-#define RF2XX_DRIVER_STATS      (RF2XX_CONF_DRIVER_STATS)
-#endif
-
 
 // AT86RF2xx driver for Contiki(-NG)
 extern const struct radio_driver rf2xx_driver;

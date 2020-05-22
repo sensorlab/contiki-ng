@@ -53,6 +53,7 @@ typedef uint32_t uip_stats_t;
 #define TSCH_CONF_DEFAULT_TIMESLOT_TIMING RF2XX_CONF_DEFAULT_TIMESLOT_TIMING
 #endif
 
+
 /* CSMA acknowledge configuration  */
 #ifndef CSMA_CONF_SEND_SOFT_ACK
 #define CSMA_CONF_SEND_SOFT_ACK                (RF2XX_SEND_SOFT_ACK)
