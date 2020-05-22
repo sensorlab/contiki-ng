@@ -32,11 +32,12 @@ COOJA.testlog
 *.jn516x
 *.native
 *.nrf52dk
-*.openmote-cc2538
+*.openmote
 *.simplelink
 *.sky
 *.firmware
 *.cc26x0-cc13x0
+*.z1
 *.zoul
 *.vesna
 
@@ -46,7 +47,7 @@ COOJA.testlog
 !Makefile.jn516x
 !Makefile.native
 !Makefile.nrf52dk
-!Makefile.openmote-cc2538
+!Makefile.openmote
 !Makefile.sky
 !Makefile.cc26x0-cc13x0
 !Makefile.zoul
@@ -71,4 +72,8 @@ cpu/x86/uefi/Makefile.uefi
 cpu/x86/uefi/edk2
 
 # editors
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json

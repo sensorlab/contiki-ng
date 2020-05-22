@@ -236,6 +236,11 @@ uip_icmp6_send(const uip_ipaddr_t *dest, int type, int code, int payload_len)
   UIP_IP_BUF->ttl = uip_ds6_if.cur_hop_limit;
   uipbuf_set_len_field(UIP_IP_BUF, UIP_ICMPH_LEN + payload_len);
 
+  if(dest == NULL) {
+    LOG_ERR("invalid argument; dest is NULL\n");
+    return;
+  }
+
   memcpy(&UIP_IP_BUF->destipaddr, dest, sizeof(*dest));
   uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
 
@@ -283,7 +288,7 @@ echo_reply_input(void)
         n = list_item_next(n)) {
       if(n->callback != NULL) {
         n->callback(&sender, ttl,
-                    (uint8_t *)&UIP_ICMP_BUF[sizeof(struct uip_icmp_hdr)],
+                    (uint8_t *)UIP_ICMP_PAYLOAD,
                     uip_len - sizeof(struct uip_icmp_hdr) - UIP_IPH_LEN);
       }
     }

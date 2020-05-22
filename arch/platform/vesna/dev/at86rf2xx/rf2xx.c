@@ -16,17 +16,16 @@
 #include "rf2xx_hal.h"
 #include "rf2xx.h"
 #include "rf2xx_arch.h"
+#include "rf2xx_stats.h"
 
 #define LOG_MODULE  "rf2xx"
 #define LOG_LEVEL   LOG_LEVEL_RF2XX
 
 PROCESS(rf2xx_process, "AT86RF2xx driver");
 
-
-#if RF2XX_STATS
+#if RF2XX_DRIVER_STATS
 volatile uint32_t rf2xxStats[RF2XX_STATS_COUNT] = { 0 };
 #endif
-
 
 // SRC: https://barrgroup.com/Embedded-Systems/How-To/Define-Assert-Macro
 #define ASSERT(expr) ({ if (!(expr)) LOG_ERR("Err: " #expr "\n"); })
@@ -112,6 +111,13 @@ rf2xx_init(void)
     // Reset internal and hardware states
 	rf2xx_reset();
 
+    // Reset driver statistic
+    RF2XX_STATS_RESET();
+
+#if RF2XX_PACKET_STATS
+    // Init buffers for packet statistics
+    STATS_initBuff();
+#endif
 	// Start Contiki process which will take care of received packets
 	process_start(&rf2xx_process, NULL);
 	// process_start(&rf2xx_calibration_process, NULL);
@@ -126,8 +132,12 @@ rf2xx_prepare(const void *payload, unsigned short payload_len)
 {
     LOG_DBG("%s\n", __func__);
 
+    RF2XX_STATS_ADD(txTry);
+
     if (payload_len > RF2XX_MAX_PAYLOAD_SIZE) {
         LOG_ERR("Payload larger than radio buffer: %u > %u\n", payload_len, RF2XX_MAX_PAYLOAD_SIZE);
+        RF2XX_STATS_ADD(txError);
+
         return RADIO_TX_ERR;
     }
 
@@ -183,6 +193,7 @@ again:
 
         default: // Unknown state
             LOG_ERR("Radio in state: 0x%02x\n", trxState);
+            RF2XX_STATS_ADD(txError);
             return RADIO_TX_ERR;
     }
 
@@ -191,10 +202,19 @@ again:
     clearSLPTR();
 
     status = frameWrite(&txFrame);
-    if (status != VSN_SPI_SUCCESS) return RADIO_TX_ERR;
+    if (status != VSN_SPI_SUCCESS){
+        RF2XX_STATS_ADD(txError);
+        return RADIO_TX_ERR;
+    }
+
 
     // Wait to complete BUSY STATE
     BUSYWAIT_UNTIL(flags.TRX_END);
+
+    #if RF2XX_PACKET_STATS
+        // Update TX packet statistics
+        STATS_txPush(&txFrame);
+    #endif
 
     txFrame.trac = (RF2XX_ARET) ? bitRead(SR_TRAC_STATUS) : TRAC_SUCCESS;
     
@@ -222,6 +242,7 @@ again:
             return RADIO_TX_COLLISION;
 
         default:
+            RF2XX_STATS_ADD(txError);
             LOG_DBG("TRAC=invalid (%u)\n", txFrame.trac);
             return RADIO_TX_ERR;
 	}
@@ -255,25 +276,24 @@ int rf2xx_read(void *buf, unsigned short buf_len)
 int
 rf2xx_channel_clear(void)
 {
-    if (RF2XX_CCA) {
+    #if RF2XX_HW_CCA
+        // The radio will take care of it.
         return 1;
-    }
+    #else
+        uint8_t cca;
+        rf2xx_on();
 
-    uint8_t cca;
+        //bitWrite(SR_RX_PDT_DIS, 1); // disable reception
 
-    rf2xx_on();
+        bitWrite(SR_CCA_REQUEST, 1); // trigger CCA sensing
+        BUSYWAIT_UNTIL(flags.CCA);
+        flags.CCA = 0;
 
-    bitWrite(SR_RX_PDT_DIS, 1); // disable reception
+        cca = bitRead(SR_CCA_STATUS); // 1 = IDLE, 0 = BUSY
 
-    bitWrite(SR_CCA_REQUEST, 1); // trigger CCA sensing
-    BUSYWAIT_UNTIL(flags.CCA);
-    flags.CCA = 0;
-
-    cca = bitRead(SR_CCA_STATUS); // 1 = IDLE, 0 = BUSY
-
-    bitWrite(SR_RX_PDT_DIS, 0); // Enable reception
-
-    return cca;
+        //bitWrite(SR_RX_PDT_DIS, 0); // Enable reception
+        return cca;
+    #endif
 }
 
 
@@ -427,6 +447,12 @@ rf2xx_isr(void)
 
         if (flags.RX_START) {
             frameRead(&rxFrame);
+
+            #if RF2XX_PACKET_STATS
+                // Update RX packet statistics
+                STATS_rxPush(&rxFrame);
+            #endif
+
             process_poll(&rf2xx_process);
  
             RF2XX_STATS_ADD(rxSuccess);
@@ -437,7 +463,8 @@ rf2xx_isr(void)
 
 	if (irq.IRQ4_AWAKE_END) { // CCA_***_IRQ
 		flags.SLEEP = 0;
-		flags.CCA = 0;
+		flags.CCA = 1;
+
 	}
 
 	if (irq.IRQ7_BAT_LOW) {}
@@ -461,10 +488,10 @@ PROCESS_THREAD(rf2xx_process, ev, data)
         packetbuf_set_attr(PACKETBUF_ATTR_TIMESTAMP, rxFrame.timestamp);
         len = rf2xx_read(packetbuf_dataptr(), PACKETBUF_SIZE);
 
-        packetbuf_set_datalen(len);
-
-        NETSTACK_MAC.input();
-        
+        if(len) {
+            packetbuf_set_datalen(len);
+            NETSTACK_MAC.input();
+        }
 	}
 	PROCESS_END();
 }
@@ -527,7 +554,8 @@ get_value(radio_param_t param, radio_value_t *value)
 
 		case RADIO_PARAM_TX_MODE:
             *value = 0;
-			if (RF2XX_CCA) *value |= RADIO_TX_MODE_SEND_ON_CCA;
+			if (!RF2XX_HW_CCA) *value |= RADIO_TX_MODE_SEND_ON_CCA;
+
 			return RADIO_RESULT_OK;
 
 		case RADIO_PARAM_TXPOWER:
@@ -538,14 +566,12 @@ get_value(radio_param_t param, radio_value_t *value)
 			return RSSI_BASE_VAL + 2 * (radio_value_t)bitRead(SR_CCA_ED_THRES);
 
 		case RADIO_PARAM_RSSI:
-            LOG_DBG("Request current RSSI\n");
 			*value = (3 * ((radio_value_t)bitRead(SR_RSSI) - 1) + RSSI_BASE_VAL);
 			return RADIO_RESULT_OK;
 
-        case RADIO_PARAM_LAST_RSSI:
-            LOG_DBG("Request last RSSI\n");
-            *value = (radio_value_t)rxFrame.rssi;
-            return RADIO_RESULT_OK;
+    case RADIO_PARAM_LAST_RSSI:
+        *value = (radio_value_t)rxFrame.rssi;
+        return RADIO_RESULT_OK;
 
 		case RADIO_PARAM_LAST_LINK_QUALITY:
 			*value = (radio_value_t)rxFrame.lqi;
@@ -586,6 +612,11 @@ get_value(radio_param_t param, radio_value_t *value)
 		case RADIO_CONST_DELAY_BEFORE_DETECT:
 			*value = (radio_value_t)RF2XX_DELAY_BEFORE_DETECT;
 			return RADIO_RESULT_OK;
+
+
+    case RADIO_CONST_MAX_PAYLOAD_LEN:
+        *value = (radio_value_t)RF2XX_MAX_PAYLOAD_SIZE;
+        return RADIO_RESULT_OK;
 
 		default:
 			return RADIO_RESULT_NOT_SUPPORTED;
@@ -663,17 +694,15 @@ set_value(radio_param_t param, radio_value_t value)
     
         case RADIO_PARAM_TX_MODE:
         {
+            // TODO: Make it shorter
             bool sendOnCCA = (value & RADIO_TX_MODE_SEND_ON_CCA) > 0;
-            if (sendOnCCA != RF2XX_CCA) {
-                LOG_ERR("Invalid RF2XX_CCA settings\n");
+            if (sendOnCCA == RF2XX_HW_CCA) { // They are mutually exclusive
+                LOG_ERR("Invalid RF2XX_HW_CCA settings\n");
+                return RADIO_RESULT_ERROR;
             }
-        }
-            //RF2XX_CCA = (value & RADIO_TX_MODE_SEND_ON_CCA) > 0;
-            //bitWrite(SR_MAX_CSMA_RETRIES, RF2XX_CCA ? RF2XX_CSMA_RETRIES : 7);
 
             return RADIO_RESULT_OK;
-            //return RADIO_RESULT_NOT_SUPPORTED;
-
+        }
         case RADIO_PARAM_TXPOWER:
             if (value < 0 || value > 0xF) {
                 return RADIO_RESULT_INVALID_VALUE;
