@@ -10,6 +10,9 @@
 #define RF2XX_MAX_PAYLOAD_SIZE	(RF2XX_MAX_FRAME_SIZE - RF2XX_CRC_SIZE)
 
 
+// TODO Datasheet page 39
+
+
 // The delay between radio Tx request and SFD sent, in rtimer ticks
 #define RF2XX_DELAY_BEFORE_TX		((unsigned)US_TO_RTIMERTICKS(450))
 // Possible state transitions:
