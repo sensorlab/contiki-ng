@@ -11,30 +11,30 @@
 
 
 // The delay between radio Tx request and SFD sent, in rtimer ticks
-#define RF2XX_DELAY_BEFORE_TX		((unsigned)US_TO_RTIMERTICKS(290))
+#define RF2XX_DELAY_BEFORE_TX		((unsigned)US_TO_RTIMERTICKS(450))
 // Possible state transitions:
 //      -> FORCE_TRX_OFF                    - 1us
-//      TRX_OFF -> PLL_ON                   - 110us
-//      RX_ON   -> PLL_ON                   - 1us
+//      TRX_OFF -> PLL_ON                   - 200us (max 370us)
+//      RX_ON   -> PLL_ON                   - 16us (PLL setteling time)
 // Time before start sending
-//      PLL_ON  -> BUSY_TX                  - 16us
+//      PLL_ON  -> BUSY_TX                  - 1 symbol period
 // Time to send PREAMBLE + SFD (p.39)       
-//      (4B + 1B) * 32 us/B                 - 160us 
-//                                          = 286us
+//      (4B + 1B) * 32 us/B                 - TODO (160us) 
+//                                          = 
 
 // The delay between radio Rx request and start listening, in rtimer ticks
-#define RF2XX_DELAY_BEFORE_RX		((unsigned)US_TO_RTIMERTICKS(150))
+#define RF2XX_DELAY_BEFORE_RX		((unsigned)US_TO_RTIMERTICKS(350))
 // Possible state transitions:
 //       -> FORCE_TRX_OFF                   - 1us
-//       TRX_OFF -> RX_ON                   - 110us 
-//       PLL_ON -> RX_ON                    - 1us
+//       TRX_OFF -> RX_ON                   - 200us 
+//       PLL_ON -> RX_ON                    - 32us (PLL setteling time)
 // Time until PLL_LOCK should occur         - 32us
-//                                          = 142us
+//                                          = 
 
 // The delay between the end of SFD reception and the radio returning 1 to receiving_packet()
-#define RF2XX_DELAY_BEFORE_DETECT	((unsigned)US_TO_RTIMERTICKS(40))
+#define RF2XX_DELAY_BEFORE_DETECT	((unsigned)US_TO_RTIMERTICKS(80))
 // Time after SFD reception (p.39)
-//       PHR reception                      - 32us
+//       PHR reception                      - 32us TODO
 //       Interrupt latency                  - 9us
 //                                          = 41us
 
