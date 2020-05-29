@@ -264,6 +264,18 @@ rf2xx_reset(void)
 	// Read IRQ register to clear it
 	dummy = regRead(RG_IRQ_STATUS);
 
+
+/* RF212 configuration */
+
+    // Set 250 kbit/s datarate (SUB_MODE to 1)
+    bitWrite(RG_TRX_CTRL_2, 0x04, 2, 1);
+    
+    // Ser o_QPSK mode (default 0 is BPSK)
+    bitWrite(RG_TRX_CTRL_2, 0x08, 3, 1);
+
+/* End of RF212 config */
+
+
 	// Clear any interrupt pending
 	clearEXTI();
     enableEXTI();
