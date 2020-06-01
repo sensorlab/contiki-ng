@@ -23,7 +23,7 @@ enum {
 	RG_CC_CTRL_0		= 0x13,
 	RG_CC_CTRL_1		= 0x14,
 	RG_RX_SYN			= 0x15,
-	// 0x16
+	RG_RF_CTRL_0		= 0x16,
 	RG_XAH_CTRL_1		= 0x17,
 	RG_FTN_CTRL			= 0x18,
 	// 0x19
@@ -306,6 +306,23 @@ enum {
 #define SR_RX_PDT_DIS			RG_RX_SYN, 0x80, 7
 
 
+//#define RG_RF_CTRL_0 			(0x16) // RF212-only register
+#define SR_PA_LT				RG_RF_CTRL_0, 0xC0, 6
+#define SR_GC_TX_OFFS			RG_RF_CTRL_0, 0x03, 0
+
+enum {
+	PA_LT__2 = 0,	// 2us
+	PA_LT__4 = 1,	// 4us
+	PA_LT__6 = 2,	// 6us
+	PA_LT__8 = 3,	// 8us
+};
+
+enum {
+	GC_TX_OFFS__n1dB = 0,	// -1dB
+	GC_TX_OFFS__0dB  = 1,	//  0dB
+	GC_TX_OFFS__1dB  = 2,	// +1dB
+	GC_TX_OFFS__2dB  =3,	// +2dB
+};
 
 
 //#define RG_XAH_CTRL_1			(0x17)
