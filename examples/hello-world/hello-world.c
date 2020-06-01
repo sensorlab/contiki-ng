@@ -38,11 +38,17 @@
  */
 
 #include "contiki.h"
-
+#include "dev/serial-line.h"
+#include "arch/platform/vesna/dev/at86rf2xx/rf2xx.h"
 #include <stdio.h> /* For printf() */
+
+
+void STATS_input_command(char *data);
+
 /*---------------------------------------------------------------------------*/
 PROCESS(hello_world_process, "Hello world process");
-AUTOSTART_PROCESSES(&hello_world_process);
+PROCESS(serial_input_process, "Serial input command");
+AUTOSTART_PROCESSES(&hello_world_process, &serial_input_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(hello_world_process, ev, data)
 {
@@ -64,3 +70,31 @@ PROCESS_THREAD(hello_world_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+
+PROCESS_THREAD(serial_input_process, ev, data)
+{
+    PROCESS_BEGIN();
+    while(1){
+      PROCESS_WAIT_EVENT_UNTIL(
+        (ev == serial_line_event_message) && (data != NULL));
+      STATS_input_command(data);
+    }
+    PROCESS_END();
+}
+
+void
+STATS_input_command(char *data){
+    char cmd = data[0];
+     radio_value_t channel;
+    switch(cmd){
+
+      case '*':
+        rf2xx_driver.get_value(RADIO_PARAM_CHANNEL, &channel);
+        printf("Channel = %d \n", channel);
+        break;
+
+	  default:
+	  //printf("Unknown cmd \n");
+	  	break;
+    }
+}
