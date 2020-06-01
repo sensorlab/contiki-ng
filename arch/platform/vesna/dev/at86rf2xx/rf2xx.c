@@ -645,9 +645,9 @@ set_value(radio_param_t param, radio_value_t value)
             }
 
         case RADIO_PARAM_CHANNEL:
-            if (value < 11 || value > 26) {
+            /*if (value < 11 || value > 26) {
                 return RADIO_RESULT_INVALID_VALUE;
-            }
+            }*/
             bitWrite(SR_CHANNEL, value);
             return RADIO_RESULT_OK;
 

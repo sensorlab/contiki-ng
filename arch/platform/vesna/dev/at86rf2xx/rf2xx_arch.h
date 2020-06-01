@@ -123,4 +123,9 @@ extern const uint16_t tsch_timeslot_timing_rf2xx_10000us_250kbps[];
 #define RF2XX_POLLING_MODE   (RF2XX_CONF_POLLING_MODE)
 #endif
 
+// for rf212 radio --> channel 0 = 868.3 MHz
+#ifndef IEEE802154_CONF_DEFAULT_CHANNEL
+#define IEEE802154_CONF_DEFAULT_CHANNEL                      0
+#endif /* IEEE802154_CONF_DEFAULT_CHANNEL */
+
 #endif
