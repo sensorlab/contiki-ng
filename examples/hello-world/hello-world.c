@@ -85,13 +85,17 @@ PROCESS_THREAD(serial_input_process, ev, data)
 void
 STATS_input_command(char *data){
     char cmd = data[0];
-     radio_value_t channel;
+     radio_value_t channel, power;
     switch(cmd){
 
       case '*':
         rf2xx_driver.get_value(RADIO_PARAM_CHANNEL, &channel);
         printf("Channel = %d \n", channel);
         break;
+
+      case '/':
+        rf2xx_driver.get_value(RADIO_PARAM_TXPOWER, &power);
+        printf("Power = %d \n", power);
 
 	  default:
 	  //printf("Unknown cmd \n");

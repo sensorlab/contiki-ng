@@ -166,14 +166,6 @@ enum {
 // This register differs quite a bit between radios
 //#define RG_PHY_TX_PWR		(0x05)
 
-// (AT86RF21x-only) configure PA_BOOST, GC_PA, TX_PWR at the same time
-#define SR_TX_PWR_RF21x_ALL	RG_PHY_TX_PWR, 0xFF, 0
-
-// (AT86RF21x-only) individual Tx parameters
-#define SR_TX_PWR_RF21x		RG_PHY_TX_PWR, 0x1F, 0
-#define SR_GC_PA			RG_PHY_TX_PWR, 0x60, 5
-#define SR_PA_BOOST			RG_PHY_TX_PWR, 0x80, 7 // 5dB gain for price of side lobes
-
 // (AT86RF23x-only) configure Tx power
 #define SR_TX_PWR			RG_PHY_TX_PWR, 0x0F, 0
 #define SR_PA_LT			RG_PHY_TX_PWR, 0x30, 4 // Removed in RF233
@@ -184,6 +176,33 @@ enum {
 	GC_PA__1_3dB = 1,	// -1.3dB
 	GC_PA__0_9dB = 2,	// -0.9dB
 	GC_PA__0dB = 3,		// 0dB
+};
+
+
+// (AT86RF21x-only) individual Tx parameters
+#define SR_TX_PWR_RF21x		RG_PHY_TX_PWR, 0x1F, 0
+#define SR_GC_PA			RG_PHY_TX_PWR, 0x60, 5
+#define SR_PA_BOOST			RG_PHY_TX_PWR, 0x80, 7 // 5dB gain for price of side lobes
+
+// (AT86RF21x-only) configure PA_BOOST, GC_PA, TX_PWR at the same time
+#define SR_TX_PWR_RF21x_ALL	RG_PHY_TX_PWR, 0xFF, 0
+
+// Recommended maping of TX power for EU2 - 868.3 MHz European Band, OQPSK modulation (datasheet p. 108)
+enum {
+	TX_POWER_2		= 0xeb,
+	TX_POWER_1		= 0xab,
+	TX_POWER_0		= 0xac,
+	TX_POWER_n1		= 0xad,
+	TX_POWER_n2		= 0x48,
+	TX_POWER_n3		= 0x28,
+	TX_POWER_n4		= 0x29,
+	TX_POWER_n5		= 0x2a,
+	TX_POWER_n6		= 0x08,
+	TX_POWER_n7		= 0x09,
+	TX_POWER_n8		= 0x0a,
+	TX_POWER_n9		= 0x0b,
+	TX_POWER_n10	= 0x0c,
+	TX_POWER_n11	= 0x0d,
 };
 
 
@@ -220,7 +239,10 @@ enum {
 //#define RG_RX_CTRL			(0x0A)
 
 
+
+// This register differs between radios (RF212 has more configurations)
 //#define RG_TRX_CTRL_2		(0x0C)
+
 #define SR_OQPSK_DATA_RATE	RG_TRX_CTRL_2, 0x03, 0
 #define SR_reserverd_0C		RG_TRX_CTRL_2, 0x7C, 2
 #define SR_RX_SAFE_MODE		RG_TRX_CTRL_2, 0x80, 7
@@ -230,6 +252,33 @@ enum {
 	OQPSK_DATA_RATE_500		= 1,
 	OQPSK_DATA_RATE_1000	= 2,
 	OQPSK_DATA_RATE_2000	= 3,
+};
+
+// AT86RF212 only
+#define SR_SUB_MODE			RG_TRX_CTRL_2, 0x40, 2
+#define SR_BPSK_OQPSK		RG_TRX_CTRL_2, 0x80, 3
+#define SR_OQPSK_SUB1_RC_EN RG_TRX_CTRL_2, 0x10, 4
+#define SR_OQPSK_SCRAM_EN	RG_TRX_CTRL_2, 0x20, 5
+#define SR_TRX_OFF_AVDD_EN	RG_TRX_CTRL_2, 0x40, 6
+
+// AT86RF212 only: configure SUB_MODE, BPSK_QPSK, OQPSK_SUB1_RC_EN, SCRAM_EN at the same time
+#define SR_MODULATION_AND_RATE_RF212	RG_TRX_CTRL_2, 0x3F, 0
+
+enum {
+	BPSK_20						= 0,	// IEEE 802.15.4-2003/2006 channel page 0, channel 0
+	BPSK_40						= 4,	// IEEE 802.15.4-2003/2006 channel page 0, channel 1 to 10
+	OQPSK_SIN_RC_100			= 8,	// IEEE 802.15.4-2006 channel page 2, channel 0 
+	OQPSK_SIN_RC_200			= 9,	// Proprietary
+	OQPSK_SIN_RC_400_SCR_OFF	= 10,	// Proprietary
+	OQPSK_SIN_RC_400_SCR_ON		= 42,	// Proprietary
+	OQPSK_SIN_250				= 12,	// IEEE 802.15.4-2006 channel page 2, channel 1 to 10 
+	OQPSK_SIN_500				= 13,	// Proprietary
+	OQPSK_SIN_1000_SCR_OFF		= 14,	// Proprietary
+	OQPSK_SIN_1000_SCR_ON		= 46,	// Proprietary
+	OQPSK_RC_250				= 28,	// IEEE 802.15.4-2009 (China) channel page 5, channel 0 to 3 
+	OQPSK_RC_500				= 29,	// Proprietary
+	OQPSK_RC_1000_SCR_OFF		= 30,	// Proprietary
+	OQPSK_RC_1000_SCR_ON		= 62,	// Proprietary
 };
 
 
@@ -308,6 +357,7 @@ enum {
 
 //#define RG_RF_CTRL_0 			(0x16) // RF212-only register
 #define SR_PA_LT				RG_RF_CTRL_0, 0xC0, 6
+// TODO #define SR_reserved
 #define SR_GC_TX_OFFS			RG_RF_CTRL_0, 0x03, 0
 
 enum {

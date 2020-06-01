@@ -267,13 +267,10 @@ rf2xx_reset(void)
 
 /* RF212 configuration */
 
-/* Modulation and datarate: OQPSK-SIN-250 */
+/* Modulation and datarate:  */
 
-    // Set 250 kbit/s datarate (SUB_MODE to 1)
-    bitWrite(RG_TRX_CTRL_2, 0x04, 2, 1);
-    
-    // Ser o_QPSK mode (default 0 is BPSK)
-    bitWrite(RG_TRX_CTRL_2, 0x08, 3, 1);
+    // OQPSK-SIN modulation and 100kbit/s datarate
+    bitWrite(SR_MODULATION_AND_RATE_RF212, OQPSK_SIN_250);
 
 /* Frequency: IEEE802.15.4 European default 868.3 MHz */
 
@@ -282,6 +279,15 @@ rf2xx_reset(void)
 
     // Set channel to 0 = 868.3 (default is 5)
     bitWrite(SR_CHANNEL, 0);
+
+/* Power */
+
+    // Power offset compensation (depends on the modulation)
+    // 1dB for OQPSK and 2dB for BPSK
+    bitWrite(SR_GC_TX_OFFS, GC_TX_OFFS__1dB);
+
+    // Set power to 1dBm
+    bitWrite(SR_TX_PWR_RF21x_ALL, TX_POWER_1);
 
 /* End of RF212 config */
 
