@@ -96,8 +96,9 @@ extern const uint16_t tsch_timeslot_timing_rf2xx_10000us_250kbps[];
 
 
 
-#if AT86RF21X
-    #warning "Compiling for AT86RF21x radio!"   // TODO Remove this!
+//#if AT86RF21X
+    //#warning "Compiling for AT86RF21x radio!"   // TODO Remove this!
+
     // TODO Datasheet page 39
     // The delay between radio Tx request and SFD sent, in rtimer ticks
     #define RF2XX_DELAY_BEFORE_TX		((unsigned)US_TO_RTIMERTICKS(450))
@@ -136,12 +137,12 @@ extern const uint16_t tsch_timeslot_timing_rf2xx_10000us_250kbps[];
     #ifndef IEEE802154_CONF_DEFAULT_CHANNEL
     #define IEEE802154_CONF_DEFAULT_CHANNEL                      0
     #endif /* IEEE802154_CONF_DEFAULT_CHANNEL */
-
+/*
 #else
     # warning "Compiling fot AT86RF23x radio --> default!"
     //TODO
 
 #endif
-
+*/
 
 #endif
