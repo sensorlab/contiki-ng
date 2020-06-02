@@ -356,7 +356,7 @@ enum {
 
 
 //#define RG_RF_CTRL_0 			(0x16) // RF212-only register
-#define SR_PA_LT				RG_RF_CTRL_0, 0xC0, 6
+#define SR_PA_LT_rf212			RG_RF_CTRL_0, 0xC0, 6
 // TODO #define SR_reserved
 #define SR_GC_TX_OFFS			RG_RF_CTRL_0, 0x03, 0
 

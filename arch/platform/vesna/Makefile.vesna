@@ -101,9 +101,21 @@ CFLAGS += -DAT86RF2XX_BOARD_$(AT86RF2XX_BOARD_UPPER)
 CFLAGS += -DAT86RF2XX_BOARD_STRING=\"$(AT86RF2XX_BOARD_UPPER)\"
 endif
 
-#ifdef 
-#CFLAGS += -DAR86RF23X
-#endif
+
+# Compile for specific radio
+ifndef RADIO
+${info !!!No radio defined...going with default: AT86RF23x !!!}
+endif
+
+# Make AT86RF23X radio as default option 
+RADIO ?= AT86RF23X
+
+ifeq ($(RADIO),AT86RF21X)
+	CFLAGS += -D$(RADIO)
+else
+	CFLAGS += -D$(RADIO)
+endif
+
 
 # (Workaround) Avoid compile warnings from vesna-drivers
 #CFLAGS += -DVSNCCRADIO_868=1

@@ -6,21 +6,21 @@
 
 // If driver is built for Contiki's 6TiSCH implementation
 #if MAC_CONF_WITH_TSCH
-#define RF2XX_CONF_AACK         (0)
-#define RF2XX_CONF_ARET         (0)
-//#define RF2XX_CONF_HW_CCA       (0)
-#define RF2XX_CONF_POLLING_MODE (1)
+    #define RF2XX_CONF_AACK         (0)
+    #define RF2XX_CONF_ARET         (0)
+    //#define RF2XX_CONF_HW_CCA       (0)
+    #define RF2XX_CONF_POLLING_MODE (1)
 
-// TODO test if it is OK!!
-extern const uint16_t tsch_timeslot_timing_rf2xx_10000us_250kbps[];
+    // TODO test if it is OK!!  
+    extern const uint16_t tsch_timeslot_timing_rf2xx_10000us_250kbps[];
 
-// TSCH timeslot timing (default is: 10ms tsch_timeslot_timing_us_10000)
-#define RF2XX_CONF_DEFAULT_TIMESLOT_TIMING	(tsch_timeslot_timing_rf2xx_10000us_250kbps)        
+    // TSCH timeslot timing (default is: 10ms tsch_timeslot_timing_us_10000)
+    #define RF2XX_CONF_DEFAULT_TIMESLOT_TIMING	(tsch_timeslot_timing_rf2xx_10000us_250kbps)        
 
+
+#else   // --> for CSMA MAC layer
+    #define RF2XX_CONF_AACK     0
 #endif
-//#else --> for CSMA MAC layer
-//#define RF2XX_CONF_AACK     0
-
 
 
 // Enable radio's auto acknowledge capabilities (extended mode)
@@ -96,9 +96,7 @@ extern const uint16_t tsch_timeslot_timing_rf2xx_10000us_250kbps[];
 
 
 
-//#if AT86RF21X
-    //#warning "Compiling for AT86RF21x radio!"   // TODO Remove this!
-
+#if AT86RF21X
     // TODO Datasheet page 39
     // The delay between radio Tx request and SFD sent, in rtimer ticks
     #define RF2XX_DELAY_BEFORE_TX		((unsigned)US_TO_RTIMERTICKS(450))
@@ -130,19 +128,48 @@ extern const uint16_t tsch_timeslot_timing_rf2xx_10000us_250kbps[];
 
 
 
+    // The air time for one byte in microsecond: 1 / (100kbps/8) == 32 us/byte      //TODO
+    #define RF2XX_BYTE_AIR_TIME			(32) 
+
+    // Channel 0 = 868.3 MHz
+    #define IEEE802154_CONF_DEFAULT_CHANNEL         (0)
+
+#elif AT86RF23X
+    // The delay between radio Tx request and SFD sent, in rtimer ticks
+    #define RF2XX_DELAY_BEFORE_TX		((unsigned)US_TO_RTIMERTICKS(290))
+    // Possible state transitions:
+    //      -> FORCE_TRX_OFF                    - 1us
+    //      TRX_OFF -> PLL_ON                   - 110us
+    //      RX_ON   -> PLL_ON                   - 1us
+    // Time before start sending
+    //      PLL_ON  -> BUSY_TX                  - 16us
+    // Time to send PREAMBLE + SFD (p.39)       
+    //      (4B + 1B) * 32 us/B                 - 160us 
+    //                                          = 286us
+
+    // The delay between radio Rx request and start listening, in rtimer ticks
+    #define RF2XX_DELAY_BEFORE_RX		((unsigned)US_TO_RTIMERTICKS(150))
+    // Possible state transitions:
+    //       -> FORCE_TRX_OFF                   - 1us
+    //       TRX_OFF -> RX_ON                   - 110us 
+    //       PLL_ON -> RX_ON                    - 1us
+    // Time until PLL_LOCK should occur         - 32us
+    //                                          = 142us
+
+    // The delay between the end of SFD reception and the radio returning 1 to receiving_packet()
+    #define RF2XX_DELAY_BEFORE_DETECT	((unsigned)US_TO_RTIMERTICKS(40))
+    // Time after SFD reception (p.39)
+    //       PHR reception                      - 32us
+    //       Interrupt latency                  - 9us
+    //                                          = 41us
+
     // The air time for one byte in microsecond: 1 / (250kbps/8) == 32 us/byte
     #define RF2XX_BYTE_AIR_TIME			(32) 
 
-    // for rf212 radio --> channel 0 = 868.3 MHz
-    #ifndef IEEE802154_CONF_DEFAULT_CHANNEL
-    #define IEEE802154_CONF_DEFAULT_CHANNEL                      0
-    #endif /* IEEE802154_CONF_DEFAULT_CHANNEL */
-/*
 #else
-    # warning "Compiling fot AT86RF23x radio --> default!"
-    //TODO
-
+    // Here just in case...it will never print an error because AT86RF23X is set as default radio
+    #error "No RADIO defined in Makefile"
 #endif
-*/
+
 
 #endif
