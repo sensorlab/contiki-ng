@@ -11,14 +11,14 @@
     //#define RF2XX_CONF_HW_CCA       (0)
     #define RF2XX_CONF_POLLING_MODE (1)
 
-    // TODO test if it is OK!!  
+    // TODO test if it is OK!!  rf2xx.c 738 vrstica klice ta del
     extern const uint16_t tsch_timeslot_timing_rf2xx_10000us_250kbps[];
 
     // TSCH timeslot timing (default is: 10ms tsch_timeslot_timing_us_10000)
     #define RF2XX_CONF_DEFAULT_TIMESLOT_TIMING	(tsch_timeslot_timing_rf2xx_10000us_250kbps)        
 
 
-#else   // --> for CSMA MAC layer
+#else   // --> for CSMA MAC layer #if MAC_CONF_WITH_CSMA
     #define RF2XX_CONF_AACK     0
 #endif
 
@@ -127,9 +127,9 @@
     //                                          = 41us
 
 
-
-    // The air time for one byte in microsecond: 1 / (100kbps/8) == 32 us/byte      //TODO
-    #define RF2XX_BYTE_AIR_TIME			(32) 
+    //TODO če nastavim na SIN 100kbit/s dobivam neke x pakete konstantno
+    // The air time for one byte in microsecond: 1 / (100kbps/8) == 8 us/byte      //TODO
+    #define RF2XX_BYTE_AIR_TIME			(8) 
 
     // Channel 0 = 868.3 MHz
     #define IEEE802154_CONF_DEFAULT_CHANNEL         (0)

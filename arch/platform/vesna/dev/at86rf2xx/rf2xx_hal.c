@@ -270,7 +270,7 @@ rf2xx_reset(void)
 /* Modulation and datarate:  */
 
     // OQPSK-SIN modulation and 100kbit/s datarate
-    bitWrite(SR_MODULATION_AND_RATE_RF212, OQPSK_SIN_250);
+    bitWrite(SR_MODULATION_AND_RATE_RF212, OQPSK_SIN_RC_100);
 
 /* Frequency: IEEE802.15.4 European default 868.3 MHz */
 
