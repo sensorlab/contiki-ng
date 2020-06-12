@@ -146,7 +146,7 @@ rf2xx_prepare(const void *payload, unsigned short payload_len)
 
     LOG_DBG("Prepared %u bytes\n", payload_len);
 
-#if !RF2XX_CHECKSUM
+    #if !RF2XX_CHECKSUM
     txFrame.crc = (uint16_t *)(txFrame.content + txFrame.len);
     *txFrame.crc = crc16_data(txFrame.content, txFrame.len, 0x00);
     // LOG_DBG("calculated CRC 0x%04x \n", *txFrame.crc);
@@ -426,6 +426,18 @@ rf2xx_receiving_packet(void)
 int
 rf2xx_pending_packet(void)
 {
+    #if !RF2XX_CHECKSUM
+    if(rxFrame.len > 0){
+        uint16_t crc = crc16_data(rxFrame.content, rxFrame.len, 0x00);
+
+        if(*rxFrame.crc != crc){
+            //LOG_DBG("CRC missmatch: 0x%04x != 0x%04x \n", crc, *rxFrame.crc);
+            rxFrame.len = 0;    // TODO is it ok?
+            return 0;
+        }
+    }
+    #endif 
+
     return rxFrame.len > 0;
 }
 
