@@ -130,7 +130,7 @@ rf2xx_init(void)
 int
 rf2xx_prepare(const void *payload, unsigned short payload_len)
 {
-    LOG_DBG("%s\n", __func__);
+    uint8_t trxState;
 
     RF2XX_STATS_ADD(txTry);
 
@@ -148,7 +148,93 @@ rf2xx_prepare(const void *payload, unsigned short payload_len)
 
 #if !RF2XX_CHECKSUM
     txFrame.crc = (uint16_t *)(txFrame.content + txFrame.len);
-    *txBuffer.crc = crc16_data(txFrame.content, txFrame.len, 0x00);
+    *txFrame.crc = crc16_data(txFrame.content, txFrame.len, 0x00);
+    // LOG_DBG("calculated CRC 0x%04x \n", *txFrame.crc);
+    #endif
+
+   // State transition - put radio in proper state befor sending
+#if RF2XX_ARET
+
+    again:
+    trxState = bitRead(SR_TRX_STATUS);
+    switch (trxState) {
+        case TRX_STATUS_STATE_TRANSITION:
+            goto again;
+
+        case TRX_STATUS_BUSY_RX:
+        case TRX_STATUS_BUSY_RX_AACK:
+        case TRX_STATUS_BUSY_TX:
+        case TRX_STATUS_BUSY_TX_ARET:
+            LOG_WARN("TR-Interrupted busy state %d \n", trxState);
+
+        case TRX_STATUS_RX_AACK_ON:
+        case TRX_STATUS_RX_ON:
+            ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+
+            // First go to TRX_OFF state 
+            regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+
+        case TRX_STATUS_TX_ON:
+        case TRX_STATUS_TRX_OFF:
+
+            // Than to TX_ARET_ON state
+            regWrite(RG_TRX_STATE, TRX_CMD_TX_ARET_ON);
+            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+
+        case TRX_STATUS_TX_ARET_ON:
+
+            // Allready in proper state
+            ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
+            flags.value = 0;
+            break;
+
+        default: // Unknown state
+            LOG_ERR("Radio in state: 0x%02x\n", trxState);
+            RF2XX_STATS_ADD(txError);
+            return RADIO_TX_ERR;
+    }
+#else
+
+    again:
+    trxState = bitRead(SR_TRX_STATUS);
+    switch (trxState) {
+        case TRX_STATUS_STATE_TRANSITION:
+            goto again;
+
+        case TRX_STATUS_BUSY_RX:
+        case TRX_STATUS_BUSY_RX_AACK:
+        case TRX_STATUS_BUSY_TX:
+        case TRX_STATUS_BUSY_TX_ARET:
+            LOG_WARN("TR-Interrupted busy state %d \n", trxState);
+
+            // First go to TRX_OFF state 
+            regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+
+            ENERGEST_OFF(ENERGEST_TYPE_LISTEN); //TODO where to put it?
+
+        case TRX_STATUS_RX_AACK_ON:
+        case TRX_STATUS_RX_ON:
+        case TRX_STATUS_TX_ARET_ON:
+        case TRX_STATUS_TRX_OFF:
+
+            // Than to TX_ON state
+            regWrite(RG_TRX_STATE, TRX_CMD_TX_ON);
+            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+
+        case TRX_STATUS_TX_ON:
+
+            // Allready in proper state
+            ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
+            flags.value = 0;
+            break;
+
+        default: // Unknown state
+            LOG_ERR("Radio in state: 0x%02x\n", trxState);
+            RF2XX_STATS_ADD(txError);
+            return RADIO_TX_ERR;
+    }
 #endif
 
     return RADIO_TX_OK;
@@ -160,9 +246,8 @@ rf2xx_transmit(unsigned short transmit_len)
 {
     LOG_DBG("%s\n", __func__);
 
-    uint8_t trxState, dummy __attribute__((unused));
     vsnSPI_ErrorStatus status;
-
+/*
 again:
     trxState = bitRead(SR_TRX_STATUS);
     switch (trxState) {
@@ -196,7 +281,7 @@ again:
             RF2XX_STATS_ADD(txError);
             return RADIO_TX_ERR;
     }
-
+*/
 
     setSLPTR();
     clearSLPTR();
@@ -209,7 +294,19 @@ again:
 
 
     // Wait to complete BUSY STATE
-    BUSYWAIT_UNTIL(flags.TRX_END);
+    // BUSYWAIT_UNTIL(flags.TRX_END);   --> Vesna was in loop because no TRX_END flag appeared
+    while(!flags.TRX_END || !flags.TRX_UR ){
+
+        uint8_t trxStatus = bitRead(SR_TRX_STATUS);
+
+        if(trxStatus == TRX_STATUS_TX_ON  || trxStatus == TRX_STATUS_TX_ARET_ON ){
+            LOG_DBG("Other way \n");
+            break;
+        }
+    }
+    if(flags.TRX_UR){
+        LOG_DBG("TRX_UR flag! \n");
+    }
 
     #if RF2XX_PACKET_STATS
         // Update TX packet statistics
@@ -221,7 +318,14 @@ again:
     ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
 
     flags.value = 0;
+
+    // First to TRX_OFF state
+    regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+    while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+
+    // Go to RX state
     regWrite(RG_TRX_STATE, (RF2XX_AACK) ? TRX_CMD_RX_AACK_ON: TRX_CMD_RX_ON);
+    while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
 
     ENERGEST_ON(ENERGEST_TYPE_LISTEN);
 
@@ -331,6 +435,111 @@ rf2xx_on(void)
 {
     uint8_t trxState;
 
+#if RF2XX_AACK
+    again:
+        trxState = bitRead(SR_TRX_STATUS);
+        switch (trxState) {
+            case TRX_STATUS_STATE_TRANSITION:
+                goto again;
+
+            case TRX_STATUS_BUSY_RX:
+            case TRX_STATUS_BUSY_TX:
+            case TRX_STATUS_BUSY_TX_ARET:
+                LOG_WARN("ON-Interrupted busy state %d\n", trxState);
+
+            case TRX_STATUS_TX_ARET_ON:
+            case TRX_STATUS_RX_ON:
+
+                // First to TRX_OFF state
+                regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+                while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+
+            case TRX_STATUS_TRX_OFF:
+            case TRX_STATUS_TX_ON:
+            
+                // Then go to RX_AACK_ON state
+                regWrite(RG_TRX_STATE, TRX_CMD_RX_AACK_ON );
+                while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+
+                ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
+
+            case TRX_STATUS_RX_AACK_ON:
+
+                // Allready in proper state
+                flags.value = 0;
+                ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+                return 1;
+
+            case TRX_STATUS_BUSY_RX_AACK:
+                LOG_WARN("Allready receiving something \n");
+                return 1;
+
+            default:
+                LOG_ERR("ON-Unknown state: 0x%02x\n", trxState);
+                // Contiki doesn't care if we return back 1 or 0...we should reset radio at this point
+                
+                regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+                while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION); 
+                regWrite(RG_TRX_STATE, TRX_CMD_RX_AACK_ON);
+                while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+                flags.value = 0;
+                ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+                return 1;
+        }
+#else
+    again:
+        trxState = bitRead(SR_TRX_STATUS);
+        switch (trxState) {
+            case TRX_STATUS_STATE_TRANSITION:
+                goto again;
+
+            case TRX_STATUS_BUSY_RX_AACK:
+            case TRX_STATUS_BUSY_TX:
+            case TRX_STATUS_BUSY_TX_ARET:
+                LOG_WARN("ON-Interrupted busy state %d\n", trxState);
+
+            case TRX_STATUS_TX_ARET_ON:
+            case TRX_STATUS_RX_AACK_ON:
+
+                // First go to TRX_OFF state
+                regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+                while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);               
+
+            case TRX_STATUS_TX_ON:
+            case TRX_STATUS_TRX_OFF:
+
+                ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT); // TODO Where to put it?
+
+                // Then go to RX_ON state
+                regWrite(RG_TRX_STATE, TRX_CMD_RX_ON );
+                while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+
+            case TRX_STATUS_RX_ON:
+
+                // Allready in proper state
+                flags.value = 0;
+                ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+                return 1;
+
+            case TRX_STATUS_BUSY_RX:
+                LOG_WARN("Allready receiving something \n");
+                return 1;
+
+            default:
+                LOG_ERR("ON-Unknown state: 0x%02x\n", trxState);
+                // Contiki doesn't care if we return back 1 or 0...we should reset radio at this point
+                
+                regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+                while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION); 
+                regWrite(RG_TRX_STATE, TRX_CMD_RX_ON );
+                while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION); 
+                flags.value = 0;
+                ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+                return 1;
+        }
+
+#endif
+/*
 again:
     trxState = bitRead(SR_TRX_STATUS);
     switch (trxState) {
@@ -348,8 +557,8 @@ again:
             while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
             //BUSYWAIT_UNTIL(flags.PLL_LOCK);
             ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
-            // fall-thru
 
+            // fall-thru
         //case TRX_STATUS_RX_AACK_ON_NOCLK:
         //case TRX_STATUS_BUSY_RX_AACK_NOCLK:
         case TRX_STATUS_RX_AACK_ON:
@@ -364,6 +573,7 @@ again:
             LOG_DBG("Unknown state: 0x%02x\n", trxState);
             return 0;
     }
+*/
 }
 
 
@@ -372,6 +582,55 @@ rf2xx_off(void)
 {
     uint8_t trxState;
 
+again:
+    trxState = bitRead(SR_TRX_STATUS);
+    switch (trxState) {
+        case TRX_STATUS_STATE_TRANSITION:
+            goto again;
+
+        case TRX_STATUS_TRX_OFF:
+            // already in OFF state
+            return 1;
+
+        case TRX_STATUS_RX_ON:
+        case TRX_STATUS_RX_AACK_ON:  
+        case TRX_STATUS_TX_ON:
+        case TRX_STATUS_TX_ARET_ON:
+
+            // Idle Tx/Rx state
+            regWrite(RG_TRX_STATE, TRX_CMD_TRX_OFF);
+            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+            flags.value = 0;
+            ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+            return 1;
+
+        case TRX_STATUS_RX_AACK_ON_NOCLK:
+        case TRX_STATUS_BUSY_RX:
+        case TRX_STATUS_BUSY_RX_AACK:
+        case TRX_STATUS_BUSY_RX_AACK_NOCLK:
+        case TRX_STATUS_BUSY_TX:
+        case TRX_STATUS_BUSY_TX_ARET:
+
+            // Busy states
+            LOG_WARN("OFF-Interrupted busy state %d\n", trxState);
+            regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+            flags.value = 0;
+            ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+            
+            return 0;
+
+        default:
+            LOG_ERR("OFF-Unknown state: 0x%02x\n", trxState);
+            // Contiki doesn't care if we return back 1 or 0...we should reset radio at this point
+            regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION); 
+            flags.value = 0;
+            ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+            return 1;
+    }
+
+/*
 again:
     trxState = bitRead(SR_TRX_STATUS);
     switch (trxState) {
@@ -406,6 +665,7 @@ again:
             LOG_ERR("Unknown state: 0x%02x\n", trxState);
             return 0;
     }
+*/
 }
 
 void
