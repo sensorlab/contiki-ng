@@ -1079,7 +1079,7 @@ rf2xx_CTTM_start(void){
 
 /* 5. Set output power to 1dBm */
     bitWrite(SR_GC_TX_OFFS, GC_TX_OFFS__1dB);   // For CW mode this should be set to 1dB
-    bitWrite(SR_TX_PWR_RF21x_ALL, TX_POWER_2);
+    bitWrite(SR_TX_PWR_RF21x_ALL, 0xe8);
 
 /* 6. Verify TRX_OFF state */
     while(bitRead(SR_TRX_STATUS) != TRX_STATUS_TRX_OFF){
