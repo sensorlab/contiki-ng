@@ -27,9 +27,9 @@ Go to function rf2xx_CTTM_start() and configure steps **8** and **9** ... Refer 
 
 **PRBS**
 
-![PRBS BPSK modulation](PRBS-BPSK.png)
-![PRBS OQPSK modulation](PRBS-OQPSK.png)
+![PRBS BPSK modulation](./img/PRBS-BPSK.png)
+![PRBS OQPSK modulation](./img/PRBS-OQPSK.png)
 
 **CW**
 
-![CW - continuous wave](CW.png)
+![CW - continuous wave](./img/CW.png)
