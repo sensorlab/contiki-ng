@@ -46,6 +46,10 @@ int rf2xx_pending_packet(void);
 int rf2xx_on(void);
 int rf2xx_off(void);
 
+// Continuous transmission test mode
+void rf2xx_CTTM_start(void);
+void rf2xx_CTTM_stop(void);
+
 // Interrupt routine function
 void rf2xx_isr(void);
 

@@ -1051,3 +1051,110 @@ const struct radio_driver rf2xx_driver = {
 	.get_object = get_object,
 	.set_object = set_object,
 };
+
+
+
+void
+rf2xx_CTTM_start(void){
+    
+    static txFrame_t continuousFrame;
+    vsnSPI_ErrorStatus status;
+
+/* 1. Reset AT86RF212 radio */
+    setRST();       // Hold radio in reset state 
+	clearEXTI();    // Clear interrupt flag
+    flags.value = 0;
+	clearCS();      // clear chip select (default)
+	clearSLPTR();   // prevent going to sleep
+    clearRST();     // Release radio from RESET state
+
+/* 2. Enable PLL_LOCK IRQ */
+    regWrite(RG_IRQ_MASK, IRQ0_PLL_LOCK);
+
+/* 3. Set radio to TRX_OFF state */
+    regWrite(RG_TRX_STATE, TRX_CMD_TRX_OFF);
+
+/* 4. Set channel to 0 = 868.3 (default is 5)*/
+    bitWrite(SR_CHANNEL, 0);
+
+/* 5. Set output power to 1dBm */
+    bitWrite(SR_GC_TX_OFFS, GC_TX_OFFS__1dB);   // For CW mode this should be set to 1dB
+    bitWrite(SR_TX_PWR_RF21x_ALL, TX_POWER_2);
+
+/* 6. Verify TRX_OFF state */
+    while(bitRead(SR_TRX_STATUS) != TRX_STATUS_TRX_OFF){
+        LOG_WARN("CTTM state error \n");
+        regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+    }
+
+/* 7. Enable Continuous transmission Test mode - step #1 */
+    regWrite(0x36, 0x0F);
+
+/* 8. Select PRBS mode with modulation or CW mode with carrier position */
+
+    //regWrite(RG_TRX_CTRL_2, 0x00);  //PRBS : BPSK-20
+    //regWrite(RG_TRX_CTRL_2, 0x04);  //PRBS : BPSK-40
+    regWrite(RG_TRX_CTRL_2, 0x08);  //PRBS : OQPSK-SIN-RC-100
+    //regWrite(RG_TRX_CTRL_2, 0x0C);  //PRBS : OQPSK-SIN-250
+    //regWrite(RG_TRX_CTRL_2, 0x1C);  //PRBS : OQPSK-RC-250
+    //regWrite(RG_TRX_CTRL_2, 0x0A);  //CW at Fc +- 0.1  MHz  (OQPSK-400)
+    //regWrite(RG_TRX_CTRL_2, 0x0E);  //CW at Fc +- 0.25 MHz  (OQPSK-1000)
+
+/* 9. Frame buffer write */
+
+// CW test mode
+/*
+    //memcpy(continuousFrame.content, 0x00, 1);  // CW at FC - 0.x MHz
+    memcpy(continuousFrame.content, 0xFF, 1);  // CW at FC + 0.x MHz
+    continuousFrame.len = 0x01;
+
+    frameWrite(&continuousFrame);
+*/
+
+// PRBS test mode
+// /*
+    uint8_t payload[5];
+    uint8_t payload_len = 5;
+
+    // TODO put in critical?
+    memset(payload, 0xAA, payload_len);
+
+    memcpy(continuousFrame.content, payload, payload_len);
+    continuousFrame.len = payload_len;
+// */
+    status = frameWrite(&continuousFrame);
+    if (status != VSN_SPI_SUCCESS){
+        LOG_ERR("SPI frame buffer write error\n ");
+    }
+
+
+/* 10. Enable Continuous transmission Test mode - step #2 */
+    regWrite(0x1C, 0x54);
+
+/* 11. Enable Continuous transmission Test mode - step #3 */
+    regWrite(0x1C, 0x46);
+
+/* 12. Go to PLL_ON state */
+    regWrite(RG_TRX_STATE, TRX_CMD_PLL_ON);
+
+/* 13. Wait for IRQ PLL_LOCK */
+    while(!flags.PLL_LOCK); 
+    flags.value = 0;
+
+/* 14. Initiate transmission (issue TX_START command) */
+    regWrite(RG_TRX_STATE, TRX_CMD_TX_START);
+
+/* 15. Make measurement */
+    LOG_INFO("Radio is continuosly transmitting on freq 868.3 MHz \n "); //TODO
+
+}
+
+void
+rf2xx_CTTM_stop(void){
+
+/* 16. Disable continuous transmission test mode */
+    regWrite(0x1C, 0x0);
+
+/* 17. Reset radio */
+    rf2xx_reset();
+}
