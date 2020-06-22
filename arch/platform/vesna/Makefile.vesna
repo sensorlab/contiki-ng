@@ -82,8 +82,8 @@ CFLAGS += -fshort-enums -fno-builtin # -fomit-frame-pointer
 CFLAGS += -Wall -Wwrite-strings -Wshadow -Werror=implicit-function-declaration
 CFLAGS += -std=gnu99
 
-### Are we building with code size optimisations?
-SMALL ?= 0
+### Are we building with code size optimizations?
+SMALL ?= 1
 ifeq ($(SMALL),1)
   CFLAGS += -Os
 else
@@ -167,6 +167,20 @@ OBJDUMP_FLAGS += --disassemble --source --disassembler-options=force-thumb
 		-c "reset run" \
 		-c "shutdown"
 
+
+%.debug.olimex: %.$(TARGET)
+	$(Q)openocd \
+		-f interface/ftdi/olimex-arm-usb-ocd.cfg \
+		-f target/stm32f1x.cfg \
+		-c "reset_config none" \
+		-c "telnet_port 4444" \
+		-c "gdb_port 3333" \
+		-c "tcl_port 6666" \
+		-c "init" \
+		-c "reset init" \
+		-c "verify_ircapture disable"
+
+
 %.logatec3: %.$(TARGET)
 	$(Q)openocd \
 		-f interface/sysfsgpio-lgtc.cfg \
@@ -180,15 +194,17 @@ OBJDUMP_FLAGS += --disassemble --source --disassembler-options=force-thumb
 		-c "shutdown"
 
 
-%.debug %.debug.olimex: %.$(TARGET)
+%.debug.logatec3: %.$(TARGET)
 	$(Q)openocd \
-		-f interface/ftdi/olimex-arm-usb-ocd.cfg \
+		-f interface/sysfsgpio-lgtc.cfg \
 		-f target/stm32f1x.cfg \
-		-c "reset_config none" \
+		-c "reset_config none separate" \
 		-c "telnet_port 4444" \
 		-c "gdb_port 3333" \
 		-c "tcl_port 6666" \
 		-c "init" \
+		-c "soft_reset_halt" \
+		-c "wait_halt" \
 		-c "reset init" \
 		-c "verify_ircapture disable"
 
@@ -199,8 +215,8 @@ OBJDUMP_FLAGS += --disassemble --source --disassembler-options=force-thumb
 		$*.$(TARGET)
 
 
-DEVICE ?= ttyUSB0
+PORT ?= ttyUSB0
 BUADRATE ?= 115200
 
 serial:
-	$(Q)picocom --echo -b 115200 --imap lfcrlf --omap crlf /dev/$(DEVICE)
+	$(Q)picocom --echo -b 115200 --imap lfcrlf --omap crlf /dev/$(PORT)
