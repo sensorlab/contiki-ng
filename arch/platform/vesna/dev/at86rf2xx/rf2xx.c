@@ -146,11 +146,11 @@ rf2xx_prepare(const void *payload, unsigned short payload_len)
 
     LOG_DBG("Prepared %u bytes\n", payload_len);
 
-    #if !RF2XX_CHECKSUM
+#if !RF2XX_CHECKSUM
     txFrame.crc = (uint16_t *)(txFrame.content + txFrame.len);
     *txFrame.crc = crc16_data(txFrame.content, txFrame.len, 0x00);
     // LOG_DBG("calculated CRC 0x%04x \n", *txFrame.crc);
-    #endif
+#endif
 
    // State transition - put radio in proper state befor sending
 #if RF2XX_ARET
@@ -306,6 +306,7 @@ again:
     }
     if(flags.TRX_UR){
         LOG_DBG("TRX_UR flag! \n");
+        return RADIO_TX_ERR;
     }
 
     #if RF2XX_PACKET_STATS
