@@ -19,7 +19,6 @@
 #include "rf2xx.h"
 #include "rf2xx_arch.h"
 
-// TODO: #if #endif case for ISMTV
 #if (AT86RF2XX_BOARD_ISMTV_V1_0 || AT86RF2XX_BOARD_ISMTV_V1_1)
 #include "cc1101/cc1101_hal.h"
 #endif
@@ -49,7 +48,7 @@
 #define CMD_WRITE		((uint8_t)0x40)
 
 
-#define DEFAULT_IRQ_MASK    (IRQ2_RX_START | IRQ3_TRX_END | IRQ4_CCA_ED_DONE | IRQ5_AMI)
+#define DEFAULT_IRQ_MASK    (IRQ2_RX_START | IRQ3_TRX_END | IRQ4_CCA_ED_DONE | IRQ5_AMI | IRQ6_TRX_UR)
 
 
 // EXTI (interrupt) struct (from STM) and constant (immutable) pointer to it.
@@ -424,6 +423,13 @@ FIFOWRITE(txFrame_t *frame)
         status = vsnSPI_pullByteTXRX(rf2xxSPI, frame->content[i], &dummy);
         if (status != VSN_SPI_SUCCESS) goto error;
     }
+
+    #if !RF2XX_CHECKSUM
+        for (uint8_t i = 0; i < RF2XX_CRC_SIZE; i++) {
+            status = vsnSPI_pullByteTXRX(rf2xxSPI, (uint8_t *)frame->crc+i, &dummy);
+            if (status != VSN_SPI_SUCCESS) goto error;
+        }
+    #endif
 
 error:
     clearCS();
