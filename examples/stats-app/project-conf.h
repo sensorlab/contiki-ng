@@ -23,8 +23,6 @@
 // For 6TiSCH
 #define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE          (uint8_t[]){ 15 }
 
-// For CSMA
-#define IEEE802154_CONF_DEFAULT_CHANNEL             (15)
 
 // Testbed can have max 21 devices
 #define NETSTACK_MAX_ROUTE_ENTRIES                  (25)
