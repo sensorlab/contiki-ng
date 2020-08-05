@@ -1055,7 +1055,7 @@ const struct radio_driver rf2xx_driver = {
 
 
 void
-rf2xx_CTTM_start(void){
+rf2xx_CTTM_start(uint8_t powa){
     
     static txFrame_t continuousFrame;
     vsnSPI_ErrorStatus status;
@@ -1079,7 +1079,7 @@ rf2xx_CTTM_start(void){
 
 /* 5. Set output power to 1dBm */
     bitWrite(SR_GC_TX_OFFS, GC_TX_OFFS__1dB);   // For CW mode this should be set to 1dB
-    bitWrite(SR_TX_PWR_RF21x_ALL, 0xe8);
+    bitWrite(SR_TX_PWR_RF21x_ALL, powa);
 
 /* 6. Verify TRX_OFF state */
     while(bitRead(SR_TRX_STATUS) != TRX_STATUS_TRX_OFF){
