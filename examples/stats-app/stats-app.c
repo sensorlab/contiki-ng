@@ -26,7 +26,7 @@ PROCESS_THREAD(continuous_transmission_test_mode_process, ev, data){
     rf2xx_CTTM_stop();
     printf("Stop continuos transmission test mode. \n");
 
-
+vsnTime_delayS(1);
 
     printf("Set radio to: continuos transmission test mode.2 \n");
     rf2xx_CTTM_start(0x0b);
@@ -36,7 +36,7 @@ PROCESS_THREAD(continuous_transmission_test_mode_process, ev, data){
     rf2xx_CTTM_stop();
     printf("Stop continuos transmission test mode. \n");
 
-
+vsnTime_delayS(1);
 
     printf("Set radio to: continuos transmission test mode. 3\n");
     rf2xx_CTTM_start(0x09);
@@ -46,7 +46,7 @@ PROCESS_THREAD(continuous_transmission_test_mode_process, ev, data){
     rf2xx_CTTM_stop();
     printf("Stop continuos transmission test mode. \n");
 
-
+vsnTime_delayS(1);
 
     printf("Set radio to: continuos transmission test mode. 4\n");
     rf2xx_CTTM_start(0x2a);
@@ -57,7 +57,7 @@ PROCESS_THREAD(continuous_transmission_test_mode_process, ev, data){
     printf("Stop continuos transmission test mode. \n");
 
 
-
+vsnTime_delayS(1);
 
     printf("Set radio to: continuos transmission test mode. 5\n");
     rf2xx_CTTM_start(0x28);
@@ -67,7 +67,7 @@ PROCESS_THREAD(continuous_transmission_test_mode_process, ev, data){
     rf2xx_CTTM_stop();
     printf("Stop continuos transmission test mode. \n");
 
-
+vsnTime_delayS(1);
 
     printf("Set radio to: continuos transmission test mode.6 \n");
     rf2xx_CTTM_start(0xad);
@@ -77,7 +77,7 @@ PROCESS_THREAD(continuous_transmission_test_mode_process, ev, data){
     rf2xx_CTTM_stop();
     printf("Stop continuos transmission test mode. \n");
 
-
+vsnTime_delayS(1);
 
     printf("Set radio to: continuos transmission test mode. 7\n");
     rf2xx_CTTM_start(0xab);
@@ -88,7 +88,7 @@ PROCESS_THREAD(continuous_transmission_test_mode_process, ev, data){
     printf("Stop continuos transmission test mode. \n");
 
 
-
+vsnTime_delayS(1);
 
     printf("Set radio to: continuos transmission test mode.8 \n");
     rf2xx_CTTM_start(0xea);
@@ -98,7 +98,7 @@ PROCESS_THREAD(continuous_transmission_test_mode_process, ev, data){
     rf2xx_CTTM_stop();
     printf("Stop continuos transmission test mode. \n");
 
-
+vsnTime_delayS(1);
 
     printf("Set radio to: continuos transmission test mode. 9\n");
     rf2xx_CTTM_start(0xe8);
