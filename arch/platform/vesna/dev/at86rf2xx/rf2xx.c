@@ -1055,7 +1055,7 @@ const struct radio_driver rf2xx_driver = {
 
 
 void
-rf2xx_CTTM_start(uint8_t powa){
+rf2xx_CTTM_start(uint8_t powa, uint8_t cc_num){
     
     static txFrame_t continuousFrame;
     vsnSPI_ErrorStatus status;
@@ -1075,7 +1075,14 @@ rf2xx_CTTM_start(uint8_t powa){
     regWrite(RG_TRX_STATE, TRX_CMD_TRX_OFF);
 
 /* 4. Set channel to 0 = 868.3 (default is 5)*/
-    bitWrite(SR_CHANNEL, 0);
+    //bitWrite(SR_CC_BAND, 0);    //default is 0
+    //bitWrite(SR_CHANNEL, 0);    //default is 5
+
+    // Set freqency manually - CC_BAND to 2 and CC_NUMBER to 0~255
+    // With this you get freq from 857 - 882.5 MHz (857 + 0.1*CC_NUMBER) (datasheet p. 123)
+    bitWrite(SR_CC_BAND, 2);
+    bitWrite(SR_CC_NUMBER, cc_num);
+
 
 /* 5. Set output power to 1dBm */
     bitWrite(SR_GC_TX_OFFS, GC_TX_OFFS__1dB);   // For CW mode this should be set to 1dB

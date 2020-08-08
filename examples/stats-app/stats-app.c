@@ -6,6 +6,7 @@
 
 
 #define APP_DURATION        (60*60*2)
+#define CCNUM               (85)
 
 
 PROCESS(continuous_transmission_test_mode_process, "CTTM process");
@@ -18,8 +19,9 @@ PROCESS_THREAD(continuous_transmission_test_mode_process, ev, data){
 
     PROCESS_BEGIN();
 
+
     printf("Set radio to: continuos transmission test mode.1 \n");
-    rf2xx_CTTM_start(0x0d);
+    rf2xx_CTTM_start(0x0d, CCNUM);
 
     vsnTime_delayS(APP_DURATION);
 
@@ -29,7 +31,7 @@ PROCESS_THREAD(continuous_transmission_test_mode_process, ev, data){
 vsnTime_delayS(1);
 
     printf("Set radio to: continuos transmission test mode.2 \n");
-    rf2xx_CTTM_start(0x0b);
+    rf2xx_CTTM_start(0x0b, CCNUM);
 
     vsnTime_delayS(APP_DURATION);
 
@@ -39,7 +41,7 @@ vsnTime_delayS(1);
 vsnTime_delayS(1);
 
     printf("Set radio to: continuos transmission test mode. 3\n");
-    rf2xx_CTTM_start(0x09);
+    rf2xx_CTTM_start(0x09, CCNUM);
 
     vsnTime_delayS(APP_DURATION);
 
@@ -49,7 +51,7 @@ vsnTime_delayS(1);
 vsnTime_delayS(1);
 
     printf("Set radio to: continuos transmission test mode. 4\n");
-    rf2xx_CTTM_start(0x2a);
+    rf2xx_CTTM_start(0x2a, CCNUM);
 
     vsnTime_delayS(APP_DURATION);
 
@@ -60,7 +62,7 @@ vsnTime_delayS(1);
 vsnTime_delayS(1);
 
     printf("Set radio to: continuos transmission test mode. 5\n");
-    rf2xx_CTTM_start(0x28);
+    rf2xx_CTTM_start(0x28, CCNUM);
 
     vsnTime_delayS(APP_DURATION);
 
@@ -70,7 +72,7 @@ vsnTime_delayS(1);
 vsnTime_delayS(1);
 
     printf("Set radio to: continuos transmission test mode.6 \n");
-    rf2xx_CTTM_start(0xad);
+    rf2xx_CTTM_start(0xad, CCNUM);
 
     vsnTime_delayS(APP_DURATION);
 
@@ -80,7 +82,7 @@ vsnTime_delayS(1);
 vsnTime_delayS(1);
 
     printf("Set radio to: continuos transmission test mode. 7\n");
-    rf2xx_CTTM_start(0xab);
+    rf2xx_CTTM_start(0xab, CCNUM);
 
     vsnTime_delayS(APP_DURATION);
 
@@ -91,7 +93,7 @@ vsnTime_delayS(1);
 vsnTime_delayS(1);
 
     printf("Set radio to: continuos transmission test mode.8 \n");
-    rf2xx_CTTM_start(0xea);
+    rf2xx_CTTM_start(0xea, CCNUM);
 
     vsnTime_delayS(APP_DURATION);
 
@@ -101,7 +103,7 @@ vsnTime_delayS(1);
 vsnTime_delayS(1);
 
     printf("Set radio to: continuos transmission test mode. 9\n");
-    rf2xx_CTTM_start(0xe8);
+    rf2xx_CTTM_start(0xe8, CCNUM);
 
     vsnTime_delayS(APP_DURATION);
 

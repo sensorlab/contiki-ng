@@ -47,7 +47,7 @@ int rf2xx_on(void);
 int rf2xx_off(void);
 
 // Continuous transmission test mode
-void rf2xx_CTTM_start(uint8_t powa);
+void rf2xx_CTTM_start(uint8_t powa, uint8_t cc_num);
 void rf2xx_CTTM_stop(void);
 
 // Interrupt routine function
