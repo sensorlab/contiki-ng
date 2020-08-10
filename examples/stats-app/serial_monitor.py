@@ -198,7 +198,7 @@ monitor.file = open(monitor.filename, "a")
 
 monitor.store_str_to_file("Oila")
 
-time.sleep(60 * 60 *2 *9 )
+time.sleep(60 * 3 )
 
 
 

@@ -5,7 +5,7 @@
 #include "arch/platform/vesna/vesna-drivers/VESNALib/inc/vsntime.h" // For delay
 
 
-#define APP_DURATION        (10)
+#define APP_DURATION        (60*3)
 #define CCNUM               (115)
 
 
@@ -19,7 +19,7 @@ PROCESS_THREAD(continuous_transmission_test_mode_process, ev, data){
 
     PROCESS_BEGIN();
 
-
+/*
     printf("Set radio to: continuos transmission test mode.1 \n");
     rf2xx_CTTM_start(0x0d, CCNUM);
 
@@ -101,7 +101,7 @@ vsnTime_delayS(1);
     printf("Stop continuos transmission test mode. \n");
 
 vsnTime_delayS(1);
-
+*/
     printf("Set radio to: continuos transmission test mode. 9\n");
     rf2xx_CTTM_start(0xe8, CCNUM);
 
