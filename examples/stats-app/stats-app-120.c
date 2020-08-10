@@ -5,7 +5,7 @@
 #include "arch/platform/vesna/vesna-drivers/VESNALib/inc/vsntime.h" // For delay
 
 
-#define APP_DURATION        (60*60*2)
+#define APP_DURATION        (10)
 #define CCNUM               (120)
 
 
