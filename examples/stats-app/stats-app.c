@@ -19,7 +19,9 @@ PROCESS_THREAD(continuous_transmission_test_mode_process, ev, data){
     PROCESS_BEGIN();
 
     printf("Set radio to: continuos transmission test mode. \n");
-    rf2xx_CTTM_start();
+
+    printf("Hello from jammer \n");
+    //rf2xx_CTTM_start();
 
     vsnTime_delayS(APP_DURATION);
 
