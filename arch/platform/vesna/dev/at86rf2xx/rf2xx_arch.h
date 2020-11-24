@@ -48,8 +48,17 @@
 #define RF2XX_BASE_DRIFT_PPM        (RTIMER_ARCH_DRIFT_PPM)
 
 
+
+/*---------------------------------------------------------------------------*/
 extern const uint16_t tsch_timing_rf2xx_15ms[];
 #define RF2XX_CONF_DEFAULT_TIMESLOT_TIMING	(tsch_timing_rf2xx_15ms)
+
+// Decrease keep-alive timeout (see issue 657: https://github.com/contiki-ng/contiki-ng/issues/657)
+#define TSCH_CONF_KEEPALIVE_TIMEOUT         (8 * CLOCK_SECOND)
+#define TSCH_CONF_MAX_KEEPALIVE_TIMEOUT     (30 * CLOCK_SECOND)
+/*---------------------------------------------------------------------------*/
+
+
 
 
 // If driver is built for Contiki's 6Tisch implementation
