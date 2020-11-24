@@ -23,10 +23,10 @@ const tsch_timeslot_timing_usec tsch_timing_rf2xx_15ms = {
     1800,   // CCAOffset
     128,    // CCA
 
-    4000,   // TxOffset
-    (4000 - (TSCH_CONF_RX_WAIT / 2)), // RxOffset
-    3600,   // RxAckDelay
-    4000,   // TxAckDelay
+    3000,   // TxOffset
+    (3000 - (TSCH_CONF_RX_WAIT / 2)), // RxOffset
+    3000,   // RxAckDelay
+    3800,   // TxAckDelay
     TSCH_CONF_RX_WAIT, // RxWait (PGT)
     2000,   // AckWait (AGT)
     2072,   // RxTx (Not used)
