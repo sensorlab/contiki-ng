@@ -48,10 +48,8 @@
 #define RF2XX_BASE_DRIFT_PPM        (RTIMER_ARCH_DRIFT_PPM)
 
 
-extern const uint16_t tsch_timeslot_timing_rf2xx_10000us_250kbps[];
-
-// TSCH timeslot timing (default is: 10ms tsch_timeslot_timing_us_10000)
-#define RF2XX_CONF_DEFAULT_TIMESLOT_TIMING	(tsch_timeslot_timing_rf2xx_10000us_250kbps)
+extern const uint16_t tsch_timing_rf2xx_15ms[];
+#define RF2XX_CONF_DEFAULT_TIMESLOT_TIMING	(tsch_timing_rf2xx_15ms)
 
 
 // If driver is built for Contiki's 6Tisch implementation
