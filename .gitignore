@@ -32,6 +32,7 @@ COOJA.testlog
 *.jn516x
 *.native
 *.nrf52dk
+*.nrf52840
 *.openmote
 *.simplelink
 *.sky
@@ -39,6 +40,7 @@ COOJA.testlog
 *.cc26x0-cc13x0
 *.z1
 *.zoul
+*.nrf
 *.vesna
 
 # do not ignore platform makefiles
@@ -47,10 +49,12 @@ COOJA.testlog
 !Makefile.jn516x
 !Makefile.native
 !Makefile.nrf52dk
+!Makefile.nrf52840
 !Makefile.openmote
 !Makefile.sky
 !Makefile.cc26x0-cc13x0
 !Makefile.zoul
+!Makefile.nrf
 !Makefile.vesna
 
 # other nRF52 build artifacts

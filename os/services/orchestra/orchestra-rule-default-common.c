@@ -72,7 +72,7 @@ init(uint16_t sf_handle)
   tsch_schedule_add_link(sf_common,
       LINK_OPTION_RX | LINK_OPTION_TX | LINK_OPTION_SHARED,
       ORCHESTRA_COMMON_SHARED_TYPE, &tsch_broadcast_address,
-      0, ORCHESTRA_DEFAULT_COMMON_CHANNEL_OFFSET);
+      0, ORCHESTRA_DEFAULT_COMMON_CHANNEL_OFFSET, 1);
 }
 /*---------------------------------------------------------------------------*/
 struct orchestra_rule default_common = {
@@ -81,5 +81,7 @@ struct orchestra_rule default_common = {
   select_packet,
   NULL,
   NULL,
+  NULL,
   "default common",
+  ORCHESTRA_COMMON_SHARED_PERIOD,
 };
