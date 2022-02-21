@@ -84,6 +84,7 @@ select_packet(uint16_t *slotframe, uint16_t *timeslot, uint16_t *channel_offset)
   /* Select data packets we have a unicast link to */
   const linkaddr_t *dest = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
   if(packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE) == FRAME802154_DATAFRAME
+     && !orchestra_is_root_schedule_active(dest)
      && !linkaddr_cmp(dest, &linkaddr_null)) {
     if(slotframe != NULL) {
       *slotframe = slotframe_handle;
@@ -121,7 +122,7 @@ init(uint16_t sf_handle)
     tsch_schedule_add_link(sf_unicast,
         LINK_OPTION_SHARED | LINK_OPTION_TX | ( i == rx_timeslot ? LINK_OPTION_RX : 0 ),
         LINK_TYPE_NORMAL, &tsch_broadcast_address,
-        i, get_node_channel_offset(local_addr));
+        i, get_node_channel_offset(local_addr), 1);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -131,5 +132,7 @@ struct orchestra_rule unicast_per_neighbor_rpl_ns = {
   select_packet,
   child_added,
   child_removed,
+  NULL,
   "unicast per neighbor non-storing",
+  ORCHESTRA_UNICAST_PERIOD,
 };

@@ -72,6 +72,11 @@ struct tsch_neighbor *tsch_queue_get_nbr(const linkaddr_t *addr);
  */
 struct tsch_neighbor *tsch_queue_get_time_source(void);
 /**
+ * \brief Get the address of a neighbor.
+ * \return The link-layer address of the neighbor.
+ */
+linkaddr_t *tsch_queue_get_nbr_address(const struct tsch_neighbor *);
+/**
  * \brief Update TSCH time source
  * \param new_addr The address of the new TSCH time source
  */
@@ -92,11 +97,11 @@ struct tsch_packet *tsch_queue_add_packet(const linkaddr_t *addr, uint8_t max_tr
  */
 int tsch_queue_global_packet_count(void);
 /**
- * \brief Returns the number of packets currently a given neighbor queue
- * \param addr The link-layer address of the neighbor we are interested in
+ * \brief Returns the number of packets currently a given neighbor queue (by pointer)
+ * \param n The neighbor we are interested in
  * \return The number of packets in the neighbor's queue
  */
-int tsch_queue_packet_count(const linkaddr_t *addr);
+int tsch_queue_nbr_packet_count(const struct tsch_neighbor *n);
 /**
  * \brief Remove first packet from a neighbor queue. The packet is stored in a separate
  * dequeued packet list, for later processing.
@@ -109,6 +114,11 @@ struct tsch_packet *tsch_queue_remove_packet_from_queue(struct tsch_neighbor *n)
  * \param p The packet to be freed
  */
 void tsch_queue_free_packet(struct tsch_packet *p);
+/**
+ * \brief Flush packets to a specific address
+ * \param addr The address of the neighbor whose packets to free
+ */
+void tsch_queue_free_packets_to(const linkaddr_t *addr);
 /**
  * \brief Updates neighbor queue state after a transmission
  * \param n The neighbor queue we just sent from
