@@ -369,23 +369,28 @@ FIFOREAD(rxFrame_t *frame)
     status = vsnSPI_pullByteTXRX(rf2xxSPI, 0x00, &frame->lqi);
     if (status != VSN_SPI_SUCCESS) goto error;
 
-    // AT86RF233 adds another byte, which is RSSI value
+    // AT86RF233 adds 2 more bytes, which are ED value and RX_STATUS
     if (rf2xxChip == RF2XX_AT86RF233) {
-        status = vsnSPI_pullByteTXRX(rf2xxSPI, 0x00, (uint8_t *)&frame->rssi);
+        status = vsnSPI_pullByteTXRX(rf2xxSPI, 0x00, (uint8_t *)&frame->ed);
+        if (status != VSN_SPI_SUCCESS) goto error;
+        status = vsnSPI_pullByteTXRX(rf2xxSPI, 0x00, (uint8_t *)&frame->rx_status);
         if (status != VSN_SPI_SUCCESS) goto error;
     }
     
     status = clearCS();
     if (status != VSN_SPI_SUCCESS) goto error;
 
-    if (rf2xxChip != RF2XX_AT86RF233) {
-        status = REGREAD(RG_PHY_ED_LEVEL, (uint8_t *)&frame->rssi);
-        if (status != VSN_SPI_SUCCESS) goto error;
+    status = REGREAD(RG_PHY_ED_LEVEL, (uint8_t *)&frame->rssi);
+    if (status != VSN_SPI_SUCCESS) goto error;
+
+    if (rf2xxChip == RF2XX_AT86RF231){
+        frame->rssi += RSSI_BASE_VAL; // -91 for RF231
+    }
+    else{
+        frame->rssi += RSSI_BASE_VAL_RF233; // -94 for RF233
     }
 
     critical_exit(intStatus);
-
-    frame->rssi += -91; // RSSI_BASE_VAL
 
     return status;
 
