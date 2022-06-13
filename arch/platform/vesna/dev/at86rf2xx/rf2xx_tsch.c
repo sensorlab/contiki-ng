@@ -50,17 +50,17 @@ const tsch_timeslot_timing_usec tsch_timeslot_timing_rf2xx_10000us_250kbps = {
  *
 
 const tsch_timeslot_timing_usec tsch_timeslot_timing_us_10000 = {
-   1800, / CCAOffset 
-    128, / CCA 
-   2120, / TxOffset 
+   1800, // CCAOffset 
+    128, // CCA 
+   2120, // TxOffset 
   (2120 - (TSCH_CONF_RX_WAIT / 2)), /* RxOffset 
-    800, /* RxAckDelay 
-   1000, /* TxAckDelay 
-  TSCH_CONF_RX_WAIT, /* RxWait 
-    400, /* AckWait 
-    192, /* RxTx 
-   2400, /* MaxAck 
-   4256, /* MaxTx 
-  10000, /* TimeslotLength 
+    800, // RxAckDelay 
+   1000, // TxAckDelay 
+  TSCH_CONF_RX_WAIT, / RxWait 
+    400, // AckWait 
+    192, // RxTx 
+   2400, // MaxAck 
+   4256, // MaxTx 
+  10000, // TimeslotLength 
 };
 */
