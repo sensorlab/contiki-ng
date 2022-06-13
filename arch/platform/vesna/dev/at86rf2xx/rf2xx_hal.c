@@ -257,6 +257,9 @@ rf2xx_reset(void)
 	bitWrite(SR_AACK_UPLD_RES_FT, RF2XX_PROMISCOUS_MODE);
 	bitWrite(SR_AACK_FLTR_RES_FT, RF2XX_PROMISCOUS_MODE);
 
+    // Allow TSCH packet through the frame filter (TSHC is 2015 --> version 2)
+    bitWrite(SR_AACK_FVN_MODE, 2);
+
 	// Enable only specific IRQs
 	regWrite(RG_IRQ_MASK, DEFAULT_IRQ_MASK);
 

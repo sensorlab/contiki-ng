@@ -537,6 +537,7 @@ rf2xx_on(void)
 
             case TRX_STATUS_TX_ARET_ON:
             case TRX_STATUS_RX_AACK_ON:
+            case TRX_STATUS_P_ON:
 
                 // First go to TRX_OFF state
                 regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
@@ -636,6 +637,7 @@ again:
         case TRX_STATUS_RX_AACK_ON:  
         case TRX_STATUS_TX_ON:
         case TRX_STATUS_TX_ARET_ON:
+        case TRX_STATUS_P_ON:
 
             // Idle Tx/Rx state
             regWrite(RG_TRX_STATE, TRX_CMD_TRX_OFF);
