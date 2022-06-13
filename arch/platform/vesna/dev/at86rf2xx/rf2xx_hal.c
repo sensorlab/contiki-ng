@@ -250,7 +250,7 @@ rf2xx_reset(void)
 	regWrite(RG_CSMA_SEED_0, regRead(RG_PHY_RSSI));
 
 	// First returned byte will be IRQ_STATUS;
-	bitWrite(SR_SPI_CMD_MODE, SPI_CMD_MODE__IRQ_STATUS);
+	//bitWrite(SR_SPI_CMD_MODE, SPI_CMD_MODE__IRQ_STATUS); // Disabled since we don't need it
 
 	// Configure Promiscuous mode (AACK-mode only)
 	bitWrite(SR_AACK_PROM_MODE, RF2XX_PROMISCOUS_MODE);
@@ -352,7 +352,7 @@ FIFOREAD(rxFrame_t *frame)
     status = vsnSPI_pullByteTXRX(rf2xxSPI, (CMD_FB_ACCESS | CMD_READ), &irq.value);
     if (status != VSN_SPI_SUCCESS) goto error;
 
-    if (irq.IRQ6_TRX_UR) goto error;
+    //if (irq.IRQ6_TRX_UR) goto error;
 
     status = vsnSPI_pullByteTXRX(rf2xxSPI, 0x00, &frame->len);
     if (status != VSN_SPI_SUCCESS) goto error;
