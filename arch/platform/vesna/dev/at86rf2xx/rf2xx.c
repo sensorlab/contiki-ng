@@ -1089,7 +1089,7 @@ const struct radio_driver rf2xx_driver = {
 
 
 void
-rf2xx_CTTM_start(void){
+rf2xx_CTTM_start(uint8_t channel){
     
     static txFrame_t continuousFrame;
     vsnSPI_ErrorStatus status;
@@ -1114,13 +1114,12 @@ rf2xx_CTTM_start(void){
     regWrite(RG_TRX_STATE, TRX_CMD_TRX_OFF);
 
 // 5. Set clock at pin 17 (CLKM) 
-    // TODO  why do we need this?
 
 // 6. Set channel 
-    bitWrite(SR_CHANNEL, 16);
+    bitWrite(SR_CHANNEL, channel);
 
-// 7. Set output power to max 
-    bitWrite(SR_TX_PWR, 0xF);
+// 7. Set output power to (max = 0x0)
+    bitWrite(SR_TX_PWR, 0x0);
 
 // 8. Verify TRX_OFF state 
     while(bitRead(SR_TRX_STATUS) != TRX_STATUS_TRX_OFF){
@@ -1133,16 +1132,21 @@ rf2xx_CTTM_start(void){
 
 // #if CW
 // 10. Enable High Data Rate Mode, 2 Mb/s 
-    bitWrite(SR_OQPSK_DATA_RATE, OQPSK_DATA_RATE_2000);
+    regWrite(0x0C, 0x03);
 
 // 11. Configure High Data rate Mode 
-    regWrite(0x0A, 0xA7);
+    if(rf2xxChip == RF2XX_AT86RF233){
+        regWrite(0x0A, 0x37);
+    }else{
+        regWrite(0x0A, 0xA7);
+    }
 
 // 12. Write PHR and PSDU data - frame buffer - choose one
     memset(payload, 0x00, payload_len);   // CW at Fc-0.5MHz
     //memset(payload, 0xFF, payload_len);   // CW at Fc+0.5MHz
 
-// #endif CW */
+// #endif CW
+
 
 /* #if PRBS
 // 10. 11. and 12. 
@@ -1174,7 +1178,7 @@ rf2xx_CTTM_start(void){
     regWrite(RG_TRX_STATE, TRX_CMD_TX_START);
 
 // 18. Preform measurement 
-    LOG_INFO("Radio is continuosly transmitting on channel 19 \n "); //TODO
+    LOG_INFO("Radio is continuously transmitting on channel %d \n", channel);
 }
 
 void
