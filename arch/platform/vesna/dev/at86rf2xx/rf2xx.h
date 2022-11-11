@@ -50,7 +50,7 @@ int rf2xx_off(void);
 void rf2xx_isr(void);
 
 // Continuous transmission test mode
-void rf2xx_CTTM_start(void);
+void rf2xx_CTTM_start(uint8_t channel);
 void rf2xx_CTTM_stop(void);
 
 #endif
