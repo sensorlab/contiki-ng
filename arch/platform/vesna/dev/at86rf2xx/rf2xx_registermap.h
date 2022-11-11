@@ -1,6 +1,7 @@
 #ifndef RF2XX_REGISTERMAP_H_
 #define RF2XX_REGISTERMAP_H_
 
+// Register map for AT86RF23x radios
 
 enum {
 	RG_NOOP				= 0x00,
@@ -14,7 +15,9 @@ enum {
 	RG_PHY_CC_CCA		= 0x08,
 	RG_CCA_THRES		= 0x09,
 	RG_RX_CTRL			= 0x0A,
+	RG_SFD_VALUE		= 0x0B,
 	RG_TRX_CTRL_2		= 0x0C,
+	RG_ANT_DIV			= 0x0D,
 	RG_IRQ_MASK			= 0x0E,
 	RG_IRQ_STATUS		= 0x0F,
 	RG_VREG_CTRL		= 0x10,
@@ -23,10 +26,10 @@ enum {
 	RG_CC_CTRL_0		= 0x13,
 	RG_CC_CTRL_1		= 0x14,
 	RG_RX_SYN			= 0x15,
-	// 0x16
+	RG_TRX_RPC			= 0x16,
 	RG_XAH_CTRL_1		= 0x17,
 	RG_FTN_CTRL			= 0x18,
-	// 0x19
+	RG_XAH_CTRL_2		= 0x19,
 	RG_PLL_CF			= 0x1A,
 	RG_PLL_DCU			= 0x1B,
 	RG_PART_NUM			= 0x1C,
@@ -51,6 +54,12 @@ enum {
 	RG_CSMA_BE			= 0x2F,
 	//
 	RG_TST_CTRL_DIGI	= 0x36,
+	RG_TST_AGC			= 0x3C,
+	RG_TST_SDM			= 0x3D,
+
+	// Depending on TRX_CTRL_0
+	RG_PHY_TX_TIME		= 0X3B,
+	RG_PHY_PMU_VALUE	= 0x3B
 };
 
 
@@ -115,8 +124,13 @@ enum {
 //#define RG_TRX_CTRL_0		(0x03)
 #define SR_CLKM_CTRL		RG_TRX_CTRL_0, 0x07, 0
 #define SR_CLKM_SHA_SEL		RG_TRX_CTRL_0, 0x08, 3
-#define SR_PAD_IO_CLKM		RG_TRX_CTRL_0, 0x30, 4 // Removed in RF233
-#define SR_PAD_IO			RG_TRX_CTRL_0, 0xC0, 6 // Removed in RF233
+
+#define SR_PAD_IO_CLKM		RG_TRX_CTRL_0, 0x30, 4
+#define SR_PAD_IO			RG_TRX_CTRL_0, 0xC0, 6
+
+#define SR_PMU_IF_INVERSE	RG_TRX_CTRL_0, 0x10, 4	// Only in RF233
+#define SR_PMU_EN			RG_TRX_CTRL_0, 0x20, 5	// Only in RF233
+#define SR_TOM_EN			RG_TRX_CTRL_0, 0x80, 7	// Only in RF233
 
 
 enum {
@@ -163,18 +177,7 @@ enum {
 };
 
 
-// This register differs quite a bit between radios
 //#define RG_PHY_TX_PWR		(0x05)
-
-// (AT86RF21x-only) configure PA_BOOST, GC_PA, TX_PWR at the same time
-#define SR_TX_PWR_RF21x_ALL	RG_PHY_TX_PWR, 0xFF, 0
-
-// (AT86RF21x-only) individual Tx parameters
-#define SR_TX_PWR_RF21x		RG_PHY_TX_PWR, 0x1F, 0
-#define SR_GC_PA			RG_PHY_TX_PWR, 0x60, 5
-#define SR_PA_BOOST			RG_PHY_TX_PWR, 0x80, 7 // 5dB gain for price of side lobes
-
-// (AT86RF23x-only) configure Tx power
 #define SR_TX_PWR			RG_PHY_TX_PWR, 0x0F, 0
 #define SR_PA_LT			RG_PHY_TX_PWR, 0x30, 4 // Removed in RF233
 #define SR_PA_BUF_LT		RG_PHY_TX_PWR, 0xC0, 6 // Removed in RF233
@@ -187,13 +190,13 @@ enum {
 };
 
 
-//#define RG_PHY_RSSI			(0x06)
+//#define RG_PHY_RSSI		(0x06)
 #define	SR_RSSI				RG_PHY_RSSI, 0x1F, 0
 #define SR_RND_VALUE		RG_PHY_RSSI, 0x30, 5
 #define SR_RX_CRC_VALID		RG_PHY_RSSI, 0x80, 7
 
 
-//#define RG_PHY_ED_LEVEL		(0x07)
+//#define RG_PHY_ED_LEVEL	(0x07)
 #define	SR_ED_LEVEL			RG_PHY_ED_LEVEL, 0xFF, 0
 
 
@@ -209,21 +212,28 @@ enum {
 	CCA_MODE__CARRIER_SENSE_AND_ENERGY_THRESHOLD = 3,
 };
 
-
-
-
 //#define RG_CCA_THRES		(0x09)
 #define SR_CCA_ED_THRES		RG_CCA_THRES, 0x0F, 0
 #define SR_serverved_09_1	RG_CCA_THRES, 0xF0, 4
 
 
-//#define RG_RX_CTRL			(0x0A)
+//#define RG_RX_CTRL		(0x0A)
+#define SR_PDT_TRESH		RG_RX_CTRL, 0x0F, 0
+#define SR_PEL_SHIFT_VALUE	RG_RX_CTRL, 0xC0, 6
+
+//#define RG_SFD_VALUE		(0x0B)
+#define SR_SFD_VALUE		RG_SFD_VALUE, 0xFF, 0
 
 
+// This register differs a bit between radios
 //#define RG_TRX_CTRL_2		(0x0C)
 #define SR_OQPSK_DATA_RATE	RG_TRX_CTRL_2, 0x03, 0
-#define SR_reserverd_0C		RG_TRX_CTRL_2, 0x7C, 2
 #define SR_RX_SAFE_MODE		RG_TRX_CTRL_2, 0x80, 7
+
+// (AT86RF233 - only)
+#define SR_OQPSK_DATA_RATE_RF233	RG_TRX_CTRL_2, 0x07, 0	 
+#define SR_OQPSK_SCRAM_EN			RG_TRX_CTRL_2, 0x20, 5	
+#define SR_RX_SAFE_MODE				RG_TRX_CTRL_2, 0x80, 7
 
 enum {
 	OQPSK_DATA_RATE_250 	= 0, // IEEE 802.15.4 compliant
@@ -232,9 +242,14 @@ enum {
 	OQPSK_DATA_RATE_2000	= 3,
 };
 
+//#define RG_ANT_DIV		(0x0D)
+#define SR_ANT_CTRL			RG_ANT_DIV, 0x03, 0
+#define SR_ANT_EXT_SW_EN	RG_ANT_DIV, 0x04, 2
+#define SR_ANT_DIV_EN		RG_ANT_DIV, 0x08, 3
+#define SR_ANT_SEL			RG_ANT_DIV, 0x80, 7
 
 
-//#define RG_IRQ_MASK			(0x0E)
+//#define RG_IRQ_MASK		(0x0E)
 #define SR_IRQ_MASK			RG_IRQ_MASK, 0xFF, 0
 
 enum {
@@ -291,13 +306,13 @@ enum {
 };
 
 
-//#define RG_CC_CTRL_0			(0x13) // RF212-only register
+//#define RG_CC_CTRL_0			(0x13)
 #define SR_CC_NUMBER			RG_CC_CTRL_0, 0xFF, 0
 
 
-//#define RG_CC_CTRL_1			(0x14) // RF212-only register
-#define SR_CC_BAND				RG_CC_CTRL_1, 0x07, 0
-#define SR_RESERVED_14_3		RG_CC_CTRL_1, 0xF8, 3
+//#define RG_CC_CTRL_1			(0x14)
+#define SR_CC_BAND				RG_CC_CTRL_1, 0x0F, 0
+#define SR_RESERVED_14_3		RG_CC_CTRL_1, 0xF0, 4
 
 
 //#define RG_RX_SYN				(0x15)
@@ -306,7 +321,13 @@ enum {
 #define SR_RX_PDT_DIS			RG_RX_SYN, 0x80, 7
 
 
-
+//#define RG_TRX_RPC			(0x16)
+#define SR_IPAN_RPC_EN			RG_TRX_RPC, 0x02, 1
+#define SR_XAH_TX_RPC_EN		RG_TRX_RPC, 0x04, 2
+#define SR_PLL_RPC_EN			RG_TRX_RPC, 0x08, 3
+#define SR_PDT_RPC_EN			RG_TRX_RPC, 0x10, 4
+#define SR_RX_RPC_EN			RG_TRX_RPC, 0x20, 5
+#define SR_RX_RPC_CTRL			RG_TRX_RPC, 0xC0, 6
 
 //#define RG_XAH_CTRL_1			(0x17)
 #define SR_AACK_PROM_MODE		RG_XAH_CTRL_1, 0x02, 1
@@ -315,14 +336,17 @@ enum {
 #define SR_AACK_FLTR_RES_FT		RG_XAH_CTRL_1, 0x20, 5
 
 
-//#define RG_FTN_CTRL				(0x18)
+//#define RG_FTN_CTRL			(0x18)
 #define SR_RESERVED_18_0		RG_FTN_CTRL, 0x7F, 0
 #define	SR_FTN_START			RG_FTN_CTRL, 0x80, 7
 
 
+//#define RG_XAH_CRTL_2			(0x19)
+#define SR_ARET_CMSA_RETRIES	RX_XAH_CTRL_2, 0x0E, 1
+#define SR_ARET_FRAME_RETRIES	RX_XAH_CTRL_2, 0xF0, 4
 
 //#define RG_PLL_CF				(0x1A)
-#define SR_RESERVED_1A_0		RG_PLL_CF, 0x7F, 0
+#define SR_PLL_CF				RG_PLL_CF, 0x0F, 0
 #define SR_PLL_CF_START			RG_PLL_CF, 0x80, 7
 
 //#define RG_PLL_DCU				(0x1B)
@@ -407,8 +431,31 @@ enum {
 #define SR_MIN_BE				RG_CSMA_BE, 0x0F, 0
 
 
+// Additional registers for RF233
 
-//#define RG_TST_CTRL_DIGI		(0x36)
+//#define RG_TST_CTRL_DIGI			(0x36)
+#define SR_TST_CTRL_DIGI		RG_TST_CTRL_DIGI, 0x0F, 0
+
+//#define RG_TST_AGC				(0x3C)
+#define SR_GC					RG_TST_AGC, 0x03, 0
+#define SR_AGC_HOLD				RG_TST_AGC, 0x04, 2
+#define SR_AGC_OFF				RG_TST_AGC, 0x08, 3
+#define SR_AGC_RST				RG_TST_AGC, 0x10, 4
+#define SR_AGC_HOLD_SEL			RG_TST_AGC, 0x20, 5
+
+//#define RG_TST_SDM				(0x3D)
+#define SR_TX_RX_SEL			RG_TST_SDM, 0x10, 4
+#define SR_TX_RX				RG_TST_SDM, 0x20, 5
+#define SR_MOD					RG_TST_SDM, 0x40, 6
+#define SR_MOD_SEL				RG_TST_SDM, 0x80, 7
+
+// The following register is available if TOM_EN = 0x01
+//#define RG_PHY_TX_TIME			(0x3B)
+#define SR_IRC_TX_TIME			RG_PHY_TX_TIME, 0x0F, 0
+
+// The following register is available if PMU_EN = 0x01	
+//#define RG_PHY_PMU_VALUE			(0x3B)
+#define SR_PMU_VALUE			RG_PHY_PMU_VALUE, 0xFF, 0
 
 
 #endif

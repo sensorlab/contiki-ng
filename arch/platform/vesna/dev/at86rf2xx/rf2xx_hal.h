@@ -31,6 +31,7 @@
 #define RF2XX_SPI_SPEED		((uint32_t)8000000)
 
 #define RSSI_BASE_VAL		((int8_t)-91)
+#define RSSI_BASE_VAL_RF233	((int8_t)-94)
 
 // Board specific configurations
 #if AT86RF2XX_BOARD_SNR
@@ -164,6 +165,8 @@ typedef struct {
     uint8_t lqi;
     int8_t rssi;
 	uint8_t trac;
+	uint8_t ed;			// Added in RF233 frame
+	uint8_t rx_status;	// Added in RF233 frame
 	rtimer_clock_t timestamp;
 } rxFrame_t;
 

@@ -250,12 +250,15 @@ rf2xx_reset(void)
 	regWrite(RG_CSMA_SEED_0, regRead(RG_PHY_RSSI));
 
 	// First returned byte will be IRQ_STATUS;
-	bitWrite(SR_SPI_CMD_MODE, SPI_CMD_MODE__IRQ_STATUS);
+	//bitWrite(SR_SPI_CMD_MODE, SPI_CMD_MODE__IRQ_STATUS); // Disabled since we don't need it
 
 	// Configure Promiscuous mode (AACK-mode only)
 	bitWrite(SR_AACK_PROM_MODE, RF2XX_PROMISCOUS_MODE);
 	bitWrite(SR_AACK_UPLD_RES_FT, RF2XX_PROMISCOUS_MODE);
 	bitWrite(SR_AACK_FLTR_RES_FT, RF2XX_PROMISCOUS_MODE);
+
+    // Allow TSCH packet through the frame filter (TSHC is 2015 --> version 2)
+    bitWrite(SR_AACK_FVN_MODE, 2);
 
 	// Enable only specific IRQs
 	regWrite(RG_IRQ_MASK, DEFAULT_IRQ_MASK);
@@ -349,7 +352,7 @@ FIFOREAD(rxFrame_t *frame)
     status = vsnSPI_pullByteTXRX(rf2xxSPI, (CMD_FB_ACCESS | CMD_READ), &irq.value);
     if (status != VSN_SPI_SUCCESS) goto error;
 
-    if (irq.IRQ6_TRX_UR) goto error;
+    //if (irq.IRQ6_TRX_UR) goto error;
 
     status = vsnSPI_pullByteTXRX(rf2xxSPI, 0x00, &frame->len);
     if (status != VSN_SPI_SUCCESS) goto error;
@@ -369,23 +372,28 @@ FIFOREAD(rxFrame_t *frame)
     status = vsnSPI_pullByteTXRX(rf2xxSPI, 0x00, &frame->lqi);
     if (status != VSN_SPI_SUCCESS) goto error;
 
-    // AT86RF233 adds another byte, which is RSSI value
+    // AT86RF233 adds 2 more bytes, which are ED value and RX_STATUS
     if (rf2xxChip == RF2XX_AT86RF233) {
-        status = vsnSPI_pullByteTXRX(rf2xxSPI, 0x00, (uint8_t *)&frame->rssi);
+        status = vsnSPI_pullByteTXRX(rf2xxSPI, 0x00, (uint8_t *)&frame->ed);
+        if (status != VSN_SPI_SUCCESS) goto error;
+        status = vsnSPI_pullByteTXRX(rf2xxSPI, 0x00, (uint8_t *)&frame->rx_status);
         if (status != VSN_SPI_SUCCESS) goto error;
     }
     
     status = clearCS();
     if (status != VSN_SPI_SUCCESS) goto error;
 
-    if (rf2xxChip != RF2XX_AT86RF233) {
-        status = REGREAD(RG_PHY_ED_LEVEL, (uint8_t *)&frame->rssi);
-        if (status != VSN_SPI_SUCCESS) goto error;
+    status = REGREAD(RG_PHY_ED_LEVEL, (uint8_t *)&frame->rssi);
+    if (status != VSN_SPI_SUCCESS) goto error;
+
+    if (rf2xxChip == RF2XX_AT86RF231){
+        frame->rssi += RSSI_BASE_VAL; // -91 for RF231
+    }
+    else{
+        frame->rssi += RSSI_BASE_VAL_RF233; // -94 for RF233
     }
 
     critical_exit(intStatus);
-
-    frame->rssi += -91; // RSSI_BASE_VAL
 
     return status;
 

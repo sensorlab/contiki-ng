@@ -11,7 +11,8 @@
 
 
 // The delay between radio Tx request and SFD sent, in rtimer ticks
-#define RF2XX_DELAY_BEFORE_TX		((unsigned)US_TO_RTIMERTICKS(290))
+//#define RF2XX_DELAY_BEFORE_TX		((unsigned)US_TO_RTIMERTICKS(290))
+#define RF2XX_DELAY_BEFORE_TX		((unsigned)US_TO_RTIMERTICKS(180)) 
 // Possible state transitions:
 //      -> FORCE_TRX_OFF                    - 1us
 //      TRX_OFF -> PLL_ON                   - 110us
